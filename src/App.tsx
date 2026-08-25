@@ -1,122 +1,119 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getSnapshot, loadSnapshot, type Editor } from "tldraw";
+import { Canvas } from "./canvas";
+import { WorldTools, webmcpSupported } from "./WorldTools";
+import { StatusChip, CardCount } from "./status";
+import { HowToPlay } from "./help";
+import { AgentToast } from "./toast";
+import { Legend } from "./legend";
+import { load, save } from "./persist";
+import { ADD_TOOL_NAMES, TOOLS } from "./tools";
+import { worldFromEditor } from "./adapter";
+import { MAX_CARDS } from "./world";
+import "./styles.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [editor, setEditor] = useState<Editor | null>(null);
+  const [worldName, setWorldName] = useState("Untitled world");
+  const [toast, setToast] = useState<string | null>(null);
+  const [supported, setSupported] = useState(false);
+  const [cardCount, setCardCount] = useState(0);
+  const nameRef = useRef(worldName);
+  nameRef.current = worldName;
+  const persistTimer = useRef<number | null>(null);
+
+  const persistNow = useCallback(
+    (ed: Editor) => {
+      const result = save(window.localStorage, {
+        v: 1,
+        worldName: nameRef.current,
+        snapshot: getSnapshot(ed.store),
+      });
+      if (!result.ok) setToast("couldn’t save in this browser");
+    },
+    [],
+  );
+
+  const schedulePersist = useCallback(() => {
+    if (!editor) return;
+    if (persistTimer.current) window.clearTimeout(persistTimer.current);
+    persistTimer.current = window.setTimeout(() => persistNow(editor), 300);
+  }, [editor, persistNow]);
+
+  const onReady = useCallback((ed: Editor) => {
+    const saved = load(window.localStorage);
+    if (saved?.snapshot) {
+      try {
+        loadSnapshot(ed.store, saved.snapshot as Parameters<typeof loadSnapshot>[1]);
+        setWorldName(saved.worldName);
+        nameRef.current = saved.worldName;
+      } catch {
+        // corrupt snapshot — start empty
+      }
+    }
+    ed.store.listen(() => {
+      setCardCount(worldFromEditor(ed, nameRef.current).cards.length);
+      if (persistTimer.current) window.clearTimeout(persistTimer.current);
+      persistTimer.current = window.setTimeout(() => persistNow(ed), 300);
+    });
+    setCardCount(worldFromEditor(ed, nameRef.current).cards.length);
+    setEditor(ed);
+  }, [persistNow]);
+
+  useEffect(() => {
+    setSupported(webmcpSupported());
+  }, [editor]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), 2500);
+    return () => window.clearTimeout(t);
+  }, [toast]);
+
+  const addEnabled = cardCount < MAX_CARDS;
+  const toolCount = TOOLS.filter(
+    (t) => addEnabled || !(ADD_TOOL_NAMES as readonly string[]).includes(t.name),
+  ).length;
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
+    <div className="lsw-app">
+      <header className="lsw-header">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
+          <div className="lsw-title">Living Story World</div>
+          <input
+            className="lsw-world-name"
+            value={worldName}
+            onChange={(e) => {
+              setWorldName(e.target.value);
+              schedulePersist();
+            }}
+            aria-label="World name"
+          />
+          <div className="lsw-sub">saved in this browser</div>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="lsw-header-right">
+          <StatusChip supported={supported} toolCount={toolCount} />
+          <CardCount cardCount={cardCount} />
+          <HowToPlay />
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      </header>
+      <main className="lsw-main">
+        <Canvas onReady={onReady} />
+        {cardCount === 0 && (
+          <div className="lsw-empty">
+            Open this in ChatGPT and say: start a fantasy world.
+          </div>
+        )}
+        <AgentToast message={toast} />
+      </main>
+      <Legend />
+      <WorldTools
+        editor={editor}
+        worldName={worldName}
+        cardCount={cardCount}
+        onToast={setToast}
+        onPersist={schedulePersist}
+      />
+    </div>
+  );
 }
-
-export default App
