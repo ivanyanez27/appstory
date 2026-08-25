@@ -30,7 +30,7 @@ Ship a visually distinctive, agent-native web app that is meaningfully better wh
 | Images | Optional URL on any card; no generation |
 | Persistence | `localStorage` in this browser |
 | Canvas engine | tldraw + custom shapes |
-| Stack | Vite + React + TypeScript, `webmcp-types`, static host, no server |
+| Stack | Vite + React + TypeScript, Chrome `use-webmcp-tool`, `webmcp-types`, static host, no server |
 
 ## User experience
 
@@ -100,7 +100,7 @@ Each unit has one job. No god-file App.
 | `world.ts` | Pure world model: cards, links, cap, CRUD, validation, `worldFromSnapshot`, `summarizeWorld(world, selectedIds)` | nothing |
 | `world.test.ts` | Tests for `world.ts` and tool executors | `world.ts`, `tools.ts` |
 | `tools.ts` | Tool definitions: name, description, JSON Schema, executor wrapping `world.ts` | `world.ts` |
-| `webmcp.ts` | Feature-detect, `registerTool` + `AbortSignal` lifecycle, cap-based add-tool register/unregister, JSON results | `tools.ts` |
+| `WorldTools.tsx` | Chrome `useWebMCP` hook per tool; add-tools unmount at cap 50 | `tools.ts`, `use-webmcp-tool` |
 | `canvas.tsx` | tldraw `Tldraw`, custom shapes, parchment CSS, camera `focus` | tldraw, shape components |
 | `shapes/` | Character, Place, Plot, Note, Region shape utils + components | tldraw |
 | `persist.ts` | Load/save snapshot | tldraw store snapshot type |
