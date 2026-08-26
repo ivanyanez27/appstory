@@ -1,0 +1,249 @@
+# Product Requirements Document — Living Story World
+
+**Product:** Living Story World  
+**Repo:** [ivanyanez27/storytime](https://github.com/ivanyanez27/storytime) (`feat/living-story-world`)  
+**Status:** v1 implemented locally and on GitHub; not yet deployed to a live HTTPS URL  
+**Date:** 2026-08-26  
+**Hackathon:** [WebMCP Challenge](https://openai.com/webmcp-challenge/) — submissions close 2026-09-03  
+**Related:** `docs/superpowers/specs/2026-08-25-living-story-world-design.md`, `docs/superpowers/plans/2026-08-25-living-story-world.md`, `README.md`
+
+---
+
+## 1. Summary
+
+Living Story World is a storybook parchment canvas where a **human and ChatGPT co-build a story universe on the same page**. The person pans, drags, and edits. ChatGPT does not scrape or click the UI. The site exposes structured **WebMCP tools** so the agent can add characters, places, plot beats, notes, regions, and arrows into the live board.
+
+The product is a single static web app. There is no backend and no app-owned chatbot. ChatGPT (or Chrome with WebMCP enabled) is the agent. The page is the world.
+
+---
+
+## 2. Problem
+
+People already use ChatGPT to invent stories, campaigns, and characters. That work stays trapped in a chat transcript. The world has no spatial memory: who is where, what happened last, what the human just moved.
+
+Meanwhile, agents that “use websites” by clicking are slow and brittle. WebMCP exists so a site can declare real actions instead of hoping the agent guesses the DOM.
+
+**Gap:** there is no simple, beautiful, agent-native place where a person and an agent share one story board.
+
+**Audience:** writers, tabletop game masters, and kids who want to build a story *with* an agent rather than only *talk about* one.
+
+---
+
+## 3. Goals
+
+### Product goals
+
+1. Make human + agent collaboration on a story **visible and spatial**.
+2. Expose a non-trivial WebMCP surface (12 tools, annotations, selection-aware state, dynamic registry).
+3. Feel like a finished storybook product in a 60–90s demo, not a tool-catalog demo.
+
+### Hackathon judging (what we optimize for)
+
+| Criterion | How this product answers it |
+|---|---|
+| **WebMCP leverage** | 12 real tools on `document.modelContext`, compact vs inspect, `selectedIds`, abort, `readOnlyHint` / `untrustedContentHint`, add-tools unregister at cap 50, Chrome `use-webmcp-tool` lifecycle. |
+| **Execution** | Full chrome: header, How to play, legend, empty state, persist, parchment theme, toasts, pulse. |
+| **Potential impact** | Shared memory for story collaboration — a real job chat cannot do well. |
+| **Creativity** | Living narrative canvas, not a storefront, form, or booking flow. |
+
+### Challenge requirement
+
+Build a WebMCP-powered web app that explores a future of the open web where humans and agents interact, collaborate, and create together — on one interface, with the site declaring what the agent may do.
+
+---
+
+## 4. Locked product decisions
+
+| Topic | Decision |
+|---|---|
+| Board | Freeform infinite canvas |
+| Look | Storybook parchment (warm paper, ink, gold rules) |
+| Agent | ChatGPT / native WebMCP only — no on-page companion chatbot |
+| Images | Optional `http(s)` URL on character/place/plot cards; no generation |
+| Persistence | `localStorage` in this browser |
+| Engine | tldraw + custom shapes |
+| Stack | Vite, React, TypeScript, `use-webmcp-tool`, `webmcp-types` |
+| Hosting | Static HTTPS (Netlify / Cloudflare Pages / Vercel) |
+
+### Out of scope for v1
+
+- On-page LLM or chat panel
+- Backend, accounts, shareable world URLs
+- Agent-generated images
+- Agent freehand pencil
+- Multiplayer
+- A wipe-the-world tool
+- Mobile-first layout
+- Declarative HTML-form WebMCP
+- Cross-origin `exposedTo` / iframe tools
+
+---
+
+## 5. User experience requirements
+
+### Human
+
+- Open a full-viewport parchment canvas.
+- Edit the world name in the header.
+- Pan, zoom, drag, draw with tldraw’s native tools.
+- Double-click story cards to edit name/summary.
+- See card count (`n / 50`) and WebMCP status.
+- Open **How to play** for the demo script and tool list.
+- See a toast when the agent mutates the board; the affected card is selected and pulses.
+
+### Agent (ChatGPT or Chrome WebMCP)
+
+- Discover tools on the page (`document.modelContext`).
+- Read a compact world index, including what the human has selected.
+- Inspect one card for full text.
+- Add/update/connect/delete story elements.
+- Focus the camera on a card.
+- Stop adding cards when the world is full (those tools unregister).
+
+### Empty state
+
+Centered hint: “Open this in ChatGPT and say: start a fantasy world.” Hides after the first card.
+
+---
+
+## 6. Functional requirements
+
+### Story model
+
+Elements: **character**, **place**, **plot**, **note**, **region**, plus labeled **links** (arrows).
+
+- Hard cap: **50 cards** (links do not count).
+- Auto-layout on a 260px grid, 4 columns, when `x`/`y` omitted.
+- IDs generated by the app (`character_ab12cd34`, …). Agents never invent IDs.
+- Delete of a card removes incident links.
+- Image URLs must be `http:` or `https:`. Notes and regions cannot have images.
+
+### WebMCP tools (12)
+
+| Tool | Purpose | Notes |
+|---|---|---|
+| `get_world_state` | Compact index + `selectedIds` | `readOnlyHint`, `untrustedContentHint`, ≤ ~1.5K JSON |
+| `inspect_element` | Full card or link | `readOnlyHint`, `untrustedContentHint` |
+| `add_character` | Character card | Unregisters at 50 cards |
+| `add_place` | Place card | Unregisters at 50 cards |
+| `add_plot_point` | Plot beat | Unregisters at 50 cards |
+| `add_note` | Sticky note (`text` → name) | Unregisters at 50 cards |
+| `add_region` | Dashed labeled frame | Unregisters at 50 cards |
+| `connect_elements` | Labeled arrow | Rejects self-link and duplicates |
+| `update_element` | Name, summary, position, size | |
+| `set_element_image` | Set/clear image URL | `untrustedContentHint` |
+| `focus_element` | Pan/zoom to a card | `readOnlyHint` |
+| `delete_element` | Remove card or link | Human can undo (Ctrl/Cmd+Z) |
+
+Expected tool errors return `{ ok: false, error }` and do not mutate. Cancelled executions return `{ ok: false, error: "cancelled" }`.
+
+### Persistence
+
+Save tldraw snapshot + world name to `localStorage` key `lsw.v1`. Corrupt/missing data loads an empty world. Quota failure keeps memory and toasts once.
+
+### Platform
+
+- Feature-detect `document.modelContext` (fallback `navigator.modelContext`).
+- If missing: canvas still works; chip says to open ChatGPT.
+- Response headers: `Origin-Agent-Cluster: ?1`, `Permissions-Policy: tools=(self)`.
+- Open source: MIT.
+
+---
+
+## 7. What has already been done
+
+### Discovery and design (2026-08-25)
+
+- Chose Living Story World over other hackathon ideas (highest wow for judges).
+- Locked: freeform canvas, parchment look, ChatGPT-only agent, optional image URLs, localStorage, tldraw.
+- Wrote and reviewed the design spec.
+- Aligned the spec with the [W3C WebMCP draft](https://webmachinelearning.github.io/webmcp/) and [Chrome WebMCP docs](https://developer.chrome.com/docs/ai/webmcp) (compact output budget, annotations, abort, origin isolation, visible actuation).
+- Wrote the implementation plan.
+- Chose Chrome’s official React hook `use-webmcp-tool` for registration.
+
+### Implementation (branch `feat/living-story-world`, pushed to GitHub)
+
+| Area | Done |
+|---|---|
+| App scaffold | Vite + React + TypeScript + Vitest |
+| World model | `src/world.ts` — CRUD, cap, links, compact index, inspect |
+| Tool executors | `src/tools.ts` — all 12 tools, abort, selectedIds |
+| Persistence | `src/persist.ts` — localStorage round-trip and corrupt-load |
+| Canvas | tldraw + custom parchment shapes (character, place, plot, note, region) |
+| Adapter | World ↔ tldraw shapes/arrows (`src/adapter.ts`) |
+| WebMCP UI wiring | `src/WorldTools.tsx` — `useWebMCP` per tool; add-tools `enabled` only under cap |
+| Product chrome | Header, world name, status chip, How to play, legend, empty state, toast, pulse |
+| Theme | Parchment CSS |
+| Docs / legal / host | `README.md`, MIT `LICENSE`, `netlify.toml`, `vercel.json`, `public/_headers` |
+| Tests | 23 Vitest tests (world, tools, persist, adapter ids) |
+| Build | `npm run build` succeeds |
+
+### Git history (high level)
+
+1. Design spec  
+2. Spec aligned to WebMCP/Chrome guidance  
+3. Implementation plan  
+4. Vite scaffold  
+5. World model  
+6. Tool executors  
+7. Persist  
+8. Shapes + adapter  
+9. App chrome + `useWebMCP`  
+10. README, MIT, headers  
+
+Remote: `origin/feat/living-story-world` on `https://github.com/ivanyanez27/storytime`.
+
+---
+
+## 8. What is not done yet
+
+These are required for a complete hackathon submission, not for the v1 codebase itself:
+
+| Item | Status |
+|---|---|
+| Live HTTPS URL on Netlify / Cloudflare Pages / Vercel / ChatGPT Sites | **Not deployed** |
+| Manual pass in ChatGPT’s in-app browser | **Not verified in this environment** |
+| Manual pass in Chrome with `chrome://flags/#enable-webmcp-testing` | **Not verified in this environment** |
+| Recorded 60–90s demo video | **Not recorded** |
+| Devpost / challenge submission form | **Not submitted** |
+| Browser QA of empty state, persist-across-refresh, pulse, How to play | **Code is in; not click-tested here** |
+| Remove leftover Vite starter assets (`src/App.css`, `src/assets/*`) | Cosmetic leftover |
+
+v1 product scope from the spec is implemented. Shipping and judging still need a public URL plus a demo.
+
+---
+
+## 9. Success criteria
+
+v1 is successful if:
+
+1. A judge opens the live URL in ChatGPT’s in-app browser and the status chip shows WebMCP ready.
+2. The prompt *“Start a fantasy world in Eldoria with Queen Lyra and the Whispering Woods”* produces cards and links on the parchment without the agent clicking the UI.
+3. Selecting Lyra and asking *“What happens when she enters the forest at night?”* yields a new plot card that uses the selection.
+4. Refreshing the tab restores the world.
+5. In a normal browser without WebMCP, the human can still use the canvas; the chip explains to open ChatGPT.
+
+---
+
+## 10. Demo script (for recording)
+
+1. Empty parchment + How to play.  
+2. *“Let’s make a fantasy story. Start with Eldoria, Queen Lyra (afraid of the dark), and the Whispering Woods.”*  
+3. Cards appear; agent connects Lyra to Eldoria and the Woods; toast + pulse.  
+4. Human drags Lyra, types a note, **selects Lyra**.  
+5. *“What happens when she enters the forest at night?”* — plot card + region “The tree line.”  
+6. Optional: `set_element_image` with a public https URL.
+
+---
+
+## 11. How to run
+
+```bash
+cd storytime
+npm install
+npm test
+npm run dev
+```
+
+Chrome: enable `chrome://flags/#enable-webmcp-testing`.  
+ChatGPT: open the deployed (or localhost, if the desktop browser allows) URL in the in-app browser.
