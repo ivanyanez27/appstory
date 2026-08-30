@@ -125,15 +125,73 @@ const SECRET_EXTENSIONS = new Set([
   "pem",
   "pfx",
   "jks",
+  "pkcs12",
+  "asc",
+  "gpg",
+  "pgp",
+  "ppk",
 ]);
 const SECRET_FILENAMES = new Set([
   "credentials.json",
   "service-account.json",
   "id_rsa",
+  "id_dsa",
+  "id_ecdsa",
+  "id_ecdsa_sk",
   "id_ed25519",
+  "id_ed25519_sk",
+  "secring.gpg",
   ".npmrc",
+  "npmrc",
   ".pypirc",
+  ".netrc",
+  "_netrc",
+  ".pgpass",
+  ".htpasswd",
+  ".dockercfg",
+  ".docker-config.json",
+  "auth.json",
+  "token.json",
+  "local.settings.json",
+  "terraform.tfstate",
+  "terraform.tfstate.backup",
+  "gradle.properties",
 ]);
+// Environment files by exact name (the `.env` / `.env.*` family is matched by
+// pattern below).
+const ENV_FILENAMES = new Set([
+  ".envrc",
+  ".flaskenv",
+  "env.local",
+  "env.development",
+  "env.production",
+  "env.test",
+  "env.staging",
+]);
+// `secret(s)` / `credential(s)` as a bounded segment — of a filename OR a
+// directory name, so `secrets/prod.json` and `config/credentials/aws.yml` are
+// both caught, without flagging words like `secretary`.
+const SECRET_SEGMENT_PATTERN =
+  /(?:^|[._-])(?:secrets?|credentials?)(?:[._-]|$)/;
+
+const ZERO_WIDTH_CODES = new Set([0x200b, 0x200c, 0x200d, 0x2060, 0xfeff]);
+
+function normalizeSegment(segment: string): string {
+  let out = "";
+  for (const character of segment.normalize("NFC")) {
+    if (!ZERO_WIDTH_CODES.has(character.codePointAt(0)!)) out += character;
+  }
+  return out.trim().toLowerCase();
+}
+
+function isSecretSegment(segment: string): boolean {
+  if (SECRET_FILENAMES.has(segment)) return true;
+  if (SECRET_SEGMENT_PATTERN.test(segment)) return true;
+  const extension = segment.includes(".") ? segment.split(".").at(-1)! : "";
+  if (SECRET_EXTENSIONS.has(extension)) return true;
+  if (/^service-account(?:[._-].*)?\.json$/.test(segment)) return true;
+  return false;
+}
 
 function pathParts(path: string): string[] | null {
   if (
@@ -153,13 +211,19 @@ function pathParts(path: string): string[] | null {
     : parts;
 }
 
+/** True when `path` is a relative, forward-slash repository path with no
+ * traversal, leading slash, backslash, or control characters. */
+export function isSafeRepositoryPath(path: string): boolean {
+  return pathParts(path) !== null;
+}
+
 export function getDefaultExclusionReason(
   path: string,
 ): RepositoryExclusionReason | null {
   const parts = pathParts(path);
   if (!parts) return "unsafe path";
 
-  const lowerParts = parts.map((part) => part.toLowerCase());
+  const lowerParts = parts.map(normalizeSegment);
   if (lowerParts.includes(".git")) return "git metadata";
   if (lowerParts.some((part) => DEPENDENCY_DIRECTORIES.has(part))) {
     return "dependency";
@@ -170,17 +234,12 @@ export function getDefaultExclusionReason(
 
   const filename = lowerParts.at(-1) ?? "";
   const extension = filename.includes(".") ? filename.split(".").at(-1)! : "";
-  if (/^\.env(?:\.|$)/.test(filename)) return "environment file";
-  if (
-    SECRET_FILENAMES.has(filename) ||
-    SECRET_EXTENSIONS.has(extension) ||
-    /^service-account(?:[._-].*)?\.json$/.test(filename) ||
-    // A fixed filename list only catches names someone thought to enumerate.
-    // "secrets.local.json" or "api_credentials.json" read clean through the
-    // list above; this catches "secret(s)"/"credential(s)" as a bounded
-    // segment of the filename without flagging words like "secretary".
-    /(?:^|[._-])(?:secrets?|credentials?)(?:[._-]|$)/.test(filename)
-  ) {
+  if (/^\.env(?:\.|$)/.test(filename) || ENV_FILENAMES.has(filename)) {
+    return "environment file";
+  }
+  // Check every path segment, not just the filename: a `secrets/` or
+  // `credentials/` directory is as much a leak as `secrets.json`.
+  if (lowerParts.some(isSecretSegment)) {
     return "likely secret";
   }
   if (BINARY_EXTENSIONS.has(extension)) return "binary";

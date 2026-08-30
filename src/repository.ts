@@ -47,14 +47,21 @@ export function sliceRepositorySource(
   if (source.includes("\0")) {
     return { ok: false, error: "Source appears to contain binary data." };
   }
-  if (/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/.test(source)) {
+  if (/-----BEGIN [A-Z0-9 ]*PRIVATE KEY(?: BLOCK)?-----/.test(source)) {
     return { ok: false, error: "Source appears to contain a private key." };
   }
   if (
     /\bgh[pousr]_[A-Za-z0-9_]{36,}\b/.test(source) ||
     /\bgithub_pat_[A-Za-z0-9_]{40,}\b/.test(source) ||
+    /\bglpat-[A-Za-z0-9_-]{20,}\b/.test(source) ||
     /\bAKIA[A-Z0-9]{16}\b/.test(source) ||
-    /\bsk_(?:live|test)_[A-Za-z0-9]{20,}\b/.test(source)
+    /\bASIA[A-Z0-9]{16}\b/.test(source) ||
+    /\b(?:r|s)k_(?:live|test)_[A-Za-z0-9]{20,}\b/.test(source) ||
+    /\bAIza[A-Za-z0-9_-]{35}\b/.test(source) ||
+    /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/.test(source) ||
+    /\bsk-(?:proj-|ant-)?[A-Za-z0-9_-]{20,}\b/.test(source) ||
+    /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/.test(source) ||
+    /(?:api[_-]?key|secret[_-]?key|access[_-]?token|client[_-]?secret|auth[_-]?token|password|passwd)\s*[:=]\s*["'][^"'\s]{8,}["']/i.test(source)
   ) {
     return { ok: false, error: "Source appears to contain a secret." };
   }
@@ -163,6 +170,12 @@ async function readRepositoryLinesUnsafe(
   }
 
   const { owner, repo, commitSha } = index.revision;
+  // Re-assert the pinned commit. `owner`/`repo`/path segments are all
+  // `encodeURIComponent`d below, but `commitSha` goes into the URL raw; a
+  // tampered persisted index must not be able to redirect this fetch.
+  if (!/^[a-f0-9]{40}$/i.test(commitSha)) {
+    return { ok: false, error: "The repository revision is invalid." };
+  }
   const encodedPath = path.split("/").map(encodeURIComponent).join("/");
   const response = await fetcher(
     `${RAW}/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${commitSha}/${encodedPath}`,

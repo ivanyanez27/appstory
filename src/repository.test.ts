@@ -128,6 +128,33 @@ describe("public GitHub repository access", () => {
     await expect(
       readRepositoryLines(index, "src/App.tsx", 1, 1, fetcher),
     ).resolves.toEqual({ ok: false, error: "Source appears to contain a secret." });
+
+    for (const body of [
+      "-----BEGIN OPENSSH PRIVATE KEY-----",
+      "-----BEGIN PGP PRIVATE KEY BLOCK-----",
+      `key = "sk-ant-${"a".repeat(24)}"`,
+      `API_KEY: "s3cr3t-value-here"`,
+    ]) {
+      fetcher.mockResolvedValueOnce(new Response(body, { status: 200 }));
+      await expect(
+        readRepositoryLines(index, "src/App.tsx", 1, 1, fetcher),
+      ).resolves.toMatchObject({ ok: false });
+    }
+  });
+
+  it("rejects a tampered commit SHA before fetching source", async () => {
+    const index = {
+      revision: { owner: "acme", repo: "app", commitSha: "../evil/main" },
+      truncated: false,
+      files: [
+        { path: "a.ts", size: 10, sha: "1", eligibility: { eligible: true as const } },
+      ],
+    };
+    const fetcher = vi.fn<typeof fetch>();
+    await expect(
+      readRepositoryLines(index, "a.ts", 1, 1, fetcher),
+    ).resolves.toEqual({ ok: false, error: "The repository revision is invalid." });
+    expect(fetcher).not.toHaveBeenCalled();
   });
 
   it("refuses unindexed, excluded, and oversized ranges", async () => {

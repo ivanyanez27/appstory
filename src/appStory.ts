@@ -97,13 +97,33 @@ export function findUnreadEvidence(
   proposal: AnalysisProposal,
   windows: readonly ReadWindow[],
 ): Array<{ itemId: string; path: string; startLine: number; endLine: number }> {
+  // Merge each path's read windows into maximal ranges first. An agent hits the
+  // 500-line read cap on a long file and reads it in adjacent chunks; evidence
+  // that spans a chunk boundary was fully read even though no single window
+  // contains it.
+  const readRanges = new Map<string, Array<[number, number]>>();
+  for (const window of windows) {
+    const list = readRanges.get(window.path) ?? [];
+    list.push([window.startLine, window.endLine]);
+    readRanges.set(window.path, list);
+  }
+  for (const [path, list] of readRanges) {
+    list.sort((a, b) => a[0] - b[0]);
+    const merged: Array<[number, number]> = [];
+    for (const [start, end] of list) {
+      const last = merged.at(-1);
+      if (last && start <= last[1] + 1) last[1] = Math.max(last[1], end);
+      else merged.push([start, end]);
+    }
+    readRanges.set(path, merged);
+  }
+  const wasRead = (path: string, startLine: number, endLine: number): boolean =>
+    (readRanges.get(path) ?? []).some(
+      ([start, end]) => start <= startLine && end >= endLine,
+    );
   return [...proposal.nodes, ...proposal.edges].flatMap((item) =>
     item.evidence
-      .filter((evidence) => !windows.some((window) =>
-        window.path === evidence.path &&
-        window.startLine <= evidence.startLine &&
-        window.endLine >= evidence.endLine
-      ))
+      .filter((evidence) => !wasRead(evidence.path, evidence.startLine, evidence.endLine))
       .map((evidence) => ({ itemId: item.id, path: evidence.path, startLine: evidence.startLine, endLine: evidence.endLine })),
   );
 }
@@ -163,9 +183,21 @@ export function proposalToWorld(
     (node) => flowVisibleIds.has(node.id) && (!technicalKinds.has(node.kind) || technicalIds.has(node.id)),
   );
   const visibleIds = new Set(visibleNodes.map((node) => node.id));
-  const cards: World["cards"] = flows.map((flow, flowIndex) => {
-    const expandedNodes = visibleNodes.filter((node) => flow.nodeIds.includes(node.id));
-    return {
+
+  // Group the visible nodes by flow once. Both loops below need per-flow
+  // ordering; recomputing it per node made this O(V²) on every canvas render.
+  const flowIndexById = new Map(flows.map((flow, index) => [flow.id, index]));
+  const nodesByFlow = new Map<string, typeof visibleNodes>();
+  const localIndexById = new Map<string, number>();
+  for (const node of visibleNodes) {
+    const flowId = node.flowId?.trim() || "main";
+    const list = nodesByFlow.get(flowId) ?? [];
+    localIndexById.set(node.id, list.length);
+    list.push(node);
+    nodesByFlow.set(flowId, list);
+  }
+
+  const cards: World["cards"] = flows.map((flow, flowIndex) => ({
     id: `flow:${flow.id}`,
     type: "region",
     name: expanded.has(flow.id) ? flow.title : `${flow.title} · collapsed`,
@@ -175,16 +207,14 @@ export function proposalToWorld(
     y: -FLOW_PADDING,
     w: expanded.has(flow.id) ? FLOW_W : 340,
     h: expanded.has(flow.id)
-      ? Math.max(420, Math.ceil(expandedNodes.length / COLUMNS) * ROW_PITCH + 100)
+      ? Math.max(420, Math.ceil((nodesByFlow.get(flow.id)?.length ?? 0) / COLUMNS) * ROW_PITCH + 100)
       : 120,
-  };
-  });
+  }));
 
   for (const node of visibleNodes) {
     const flowId = node.flowId?.trim() || "main";
-    const flowIndex = Math.max(0, flows.findIndex((flow) => flow.id === flowId));
-    const flowNodes = visibleNodes.filter((candidate) => (candidate.flowId?.trim() || "main") === flowId);
-    const localIndex = flowNodes.findIndex((candidate) => candidate.id === node.id);
+    const flowIndex = Math.max(0, flowIndexById.get(flowId) ?? -1);
+    const localIndex = localIndexById.get(node.id) ?? 0;
     const type = TYPE_BY_NODE[node.kind];
     cards.push({
       id: node.id,

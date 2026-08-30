@@ -55,13 +55,3 @@ export function visibleFlowNodeIds(
   }
   return [...visible];
 }
-
-export function visibleFlowEdgeIds(
-  proposal: AnalysisProposal,
-  visibleNodeIds: readonly string[],
-): string[] {
-  const visible = new Set(visibleNodeIds);
-  return proposal.edges
-    .filter((edge) => visible.has(edge.fromId) && visible.has(edge.toId))
-    .map((edge) => edge.id);
-}

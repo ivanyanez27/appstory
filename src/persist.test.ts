@@ -1,14 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   APP_STORY_STORAGE_KEY,
-  STORAGE_KEY,
   deleteAppStory,
-  load,
   loadAppStory,
-  save,
   saveAppStory,
   type AppStoryPersistPayload,
-  type PersistPayload,
 } from "./persist";
 
 function memoryStorage(initial: Record<string, string> = {}) {
@@ -36,22 +32,33 @@ function memoryStorage(initial: Record<string, string> = {}) {
   return { store, data };
 }
 
-describe("persist", () => {
+const APP_STORY_PAYLOAD: AppStoryPersistPayload = {
+  v: 1,
+  projectName: "acme/app",
+  snapshot: {},
+  repositoryIndex: null,
+  consent: false,
+  acceptedAnalysis: { nodes: [], edges: [] },
+  proposal: { nodes: [], edges: [] },
+  finalized: false,
+  readRecords: [],
+  analysisSessionId: null,
+  gapReviews: {},
+  expandedFlowIds: [],
+  repositorySource: null,
+};
+
+describe("App Story persistence", () => {
   it("round-trips a payload", () => {
     const { store } = memoryStorage();
-    const payload: PersistPayload = {
-      v: 1,
-      worldName: "Eldoria",
-      snapshot: { document: { store: {} }, session: {} },
-    };
-    expect(save(store, payload)).toEqual({ ok: true });
-    expect(load(store)).toEqual(payload);
+    expect(saveAppStory(store, APP_STORY_PAYLOAD)).toEqual({ ok: true });
+    expect(loadAppStory(store)).toEqual(APP_STORY_PAYLOAD);
   });
 
   it("returns null for missing and corrupt JSON", () => {
-    expect(load(memoryStorage().store)).toBeNull();
-    const { store } = memoryStorage({ [STORAGE_KEY]: "{not-json" });
-    expect(load(store)).toBeNull();
+    expect(loadAppStory(memoryStorage().store)).toBeNull();
+    const { store } = memoryStorage({ [APP_STORY_STORAGE_KEY]: "{not-json" });
+    expect(loadAppStory(store)).toBeNull();
   });
 
   it("returns ok false on quota errors", () => {
@@ -59,13 +66,9 @@ describe("persist", () => {
     store.setItem = () => {
       throw new DOMException("quota", "QuotaExceededError");
     };
-    expect(save(store, { v: 1, worldName: "X", snapshot: {} })).toEqual({
-      ok: false,
-    });
+    expect(saveAppStory(store, APP_STORY_PAYLOAD)).toEqual({ ok: false });
   });
-});
 
-describe("App Story persistence", () => {
   it("does not persist private local repository metadata", () => {
     const { store, data } = memoryStorage();
     const payload = {
@@ -91,27 +94,13 @@ describe("App Story persistence", () => {
   });
 
   it("uses a separate key and deletes only App Story data", () => {
-    const { store, data } = memoryStorage({ [STORAGE_KEY]: "old-world" });
-    const payload: AppStoryPersistPayload = {
-      v: 1,
-      projectName: "acme/app",
-      snapshot: {},
-      repositoryIndex: null,
-      consent: false,
-      acceptedAnalysis: { nodes: [], edges: [] },
-      proposal: { nodes: [], edges: [] },
-      finalized: false,
-      readRecords: [],
-      analysisSessionId: null,
-      gapReviews: {},
-      expandedFlowIds: [],
-      repositorySource: null,
-    };
+    const otherKey = "unrelated.storage.key";
+    const { store, data } = memoryStorage({ [otherKey]: "keep me" });
 
-    expect(saveAppStory(store, payload)).toEqual({ ok: true });
-    expect(loadAppStory(store)).toEqual(payload);
+    expect(saveAppStory(store, APP_STORY_PAYLOAD)).toEqual({ ok: true });
+    expect(loadAppStory(store)).toEqual(APP_STORY_PAYLOAD);
     deleteAppStory(store);
     expect(data[APP_STORY_STORAGE_KEY]).toBeUndefined();
-    expect(data[STORAGE_KEY]).toBe("old-world");
+    expect(data[otherKey]).toBe("keep me");
   });
 });

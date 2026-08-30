@@ -34,6 +34,27 @@ describe("Project File", () => {
     expect(parsed).toEqual({ ok: false, error: "Project File analysis is invalid." });
   });
 
+  it("rejects an imported evidence path that escapes the repository", () => {
+    const parsed = parseProjectFile(JSON.stringify({
+      format: "app-story.project",
+      version: 1,
+      projectName: "Traversal",
+      repository: { source: "github", revision: { owner: "acme", repo: "app", commitSha: "a".repeat(40) } },
+      acceptedAnalysis: {
+        nodes: [{
+          id: "screen:app", kind: "screen", title: "App", applicationArea: "web",
+          evidence: [{ path: "../../etc/passwd", startLine: 1, endLine: 3, source: "source_code" }],
+          factors, confidence,
+        }],
+        edges: [],
+      },
+      gapReviews: {},
+      expandedFlowIds: [],
+    }));
+
+    expect(parsed).toEqual({ ok: false, error: "Project File analysis is invalid." });
+  });
+
   it("rejects a GitHub identity that cannot create safe Evidence links", () => {
     const parsed = parseProjectFile(JSON.stringify({
       format: "app-story.project",

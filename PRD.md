@@ -193,6 +193,7 @@ Read tools use `readOnlyHint`. Tools that return repository or graph text use `u
 - Export and import a versioned Project File of no more than 5 MB.
 - Project Files contain repository identity, accepted analysis, gap reviews, and expanded Flow state.
 - Project Files do not contain source text, repository permissions, draft proposals, or Read Records.
+- Discovered Facts include agent-authored free text (titles, labels, confidence reasons, factor detail). A person sees this text during proposal review before it enters an accepted analysis or an export.
 - Export accepted analysis as Markdown, SVG, or PNG.
 
 ## 14. Platform and technology
@@ -202,8 +203,15 @@ Read tools use `readOnlyHint`. Tools that return repository or graph text use `u
 - `use-webmcp-tool` for WebMCP registration
 - Browser storage for local project state
 - Static HTTPS hosting
+- Two routes from one single-page application: `/` is a static landing page; `/app` is the canvas application, loaded on demand so a landing visitor does not download the canvas bundle.
+
+Every response carries the WebMCP origin-isolation headers and three defense-in-depth headers:
+
 - `Origin-Agent-Cluster: ?1`
 - `Permissions-Policy: tools=(self)`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: no-referrer`
+- `X-Frame-Options: DENY`
 
 The canvas must remain useful in browsers without WebMCP. The status control must explain when WebMCP is unavailable.
 

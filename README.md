@@ -18,7 +18,7 @@ The core workflow is:
 
 The accepted proposal changes the graph only after human review. Repository text is untrusted input. App Story does not execute repository code or render source text as active HTML.
 
-App Story supports public GitHub repositories and local folders. Project Files can export and import accepted analysis. Markdown, SVG, and PNG exports can share the accepted review without repository source content or permissions.
+App Story supports public GitHub repositories and local folders. Project Files can export and import accepted analysis. Markdown, SVG, and PNG exports carry the accepted analysis only — no repository source text and no repository permissions. The accepted analysis can still hold agent-written free text (titles, labels, confidence reasons); a person reviews that text before it is accepted or exported.
 
 App Story does not include private repository authentication, accounts, a backend, live collaboration, repository execution, or screen capture.
 
@@ -63,7 +63,7 @@ The [Model Context Tool Inspector](https://chromewebstore.google.com/detail/mode
 ## Security model
 
 - Repository selection does not grant source access.
-- The app reads only approved, indexed text files.
+- The app reads only approved, indexed text files. Every path segment is checked against dependency, build, binary, environment, and secret patterns; a second content scan blocks a file that still looks like a key or token.
 - Each source request is limited to 500 lines.
 - The app does not execute repository code.
 - Source text is rendered as inert text.
@@ -74,10 +74,15 @@ The [Model Context Tool Inspector](https://chromewebstore.google.com/detail/mode
 
 App Story uses Vite, React, TypeScript, [tldraw](https://tldraw.dev), and `use-webmcp-tool`. It has no backend. Project state stays in the browser.
 
-The app sends these headers for WebMCP:
+The site has two routes. `/` is a static landing page. `/app` is the canvas application, code-split so a landing visitor does not download the tldraw bundle. A single-page-application fallback serves `index.html` for both, and the client picks the view from `window.location.pathname`.
+
+Every response carries the two WebMCP origin-isolation headers plus three defense-in-depth headers:
 
 - `Origin-Agent-Cluster: ?1`
 - `Permissions-Policy: tools=(self)`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: no-referrer`
+- `X-Frame-Options: DENY`
 
 ## Local development
 
@@ -93,7 +98,7 @@ Live: [app-story.ivanyanez27.workers.dev](https://app-story.ivanyanez27.workers.
 
 Deploy the `dist/` folder to a static HTTPS host. Configs for three are in this repo:
 
-- **Cloudflare Workers** (current deployment): `npm run deploy`, or `npx wrangler deploy` after `npm run build`. `wrangler.jsonc` serves `dist/` as static assets; `worker/index.ts` stamps every response with the two WebMCP headers above, matching what `public/_headers` does for Netlify and `vercel.json` does for Vercel.
+- **Cloudflare Workers** (current deployment): `npm run deploy`, or `npx wrangler deploy` after `npm run build`. `wrangler.jsonc` serves `dist/` as static assets; `worker/index.ts` stamps every response with the five headers above, matching what `public/_headers` does for Netlify and `vercel.json` does for Vercel.
 - **Netlify**: connect the repo; `netlify.toml` sets the build command and headers.
 - **Vercel**: connect the repo; `vercel.json` sets the headers.
 
