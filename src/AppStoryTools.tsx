@@ -290,8 +290,6 @@ function RegisteredAppStoryTool({
           }
           const parsed = parseProposalBatch(args.batch);
           if (!parsed.ok) return parsed;
-          runtime.sessionId.current = sessionId;
-          props.onAnalysisSession(sessionId);
           const scoredBatch = {
             nodes: parsed.batch.nodes.map((node) => ({
               ...node,
@@ -326,6 +324,14 @@ function RegisteredAppStoryTool({
           if (!applied.ok) return applied;
           runtime.proposal.current = applied.proposal;
           props.onProposal(applied.proposal);
+          // Claim the session only once a batch has actually landed. Claiming
+          // it earlier let a rejected batch lock the project while leaving the
+          // proposal empty — and the Discard control only appears when there is
+          // a proposal to discard, so nothing could release it.
+          if (applied.proposal.nodes.length || applied.proposal.edges.length) {
+            runtime.sessionId.current = sessionId;
+            props.onAnalysisSession(sessionId);
+          }
           return { ok: true, message: "Proposal batch accepted.", nodes: applied.proposal.nodes.length, edges: applied.proposal.edges.length };
         }
         case "finalize_analysis_proposal": {
