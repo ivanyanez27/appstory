@@ -6,6 +6,7 @@ import {
   type TLShape,
 } from "tldraw";
 import { CardFace } from "./cardFace";
+import { StoryShapeSvg } from "./shapeSvg";
 import type { StoryCardProps } from "./types";
 
 type NoteShape = TLShape<"lsw-note">;
@@ -61,5 +62,10 @@ export class NoteShapeUtil extends BaseBoxShapeUtil<NoteShape> {
         />
       </HTMLContainer>
     );
+  }
+
+
+  override toSvg(shape: NoteShape) {
+    return <StoryShapeSvg kind="note" props={shape.props} />;
   }
 }

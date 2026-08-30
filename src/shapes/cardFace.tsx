@@ -13,14 +13,14 @@ export function CardFace(props: {
   const [broken, setBroken] = useState(false);
   const label =
     props.kind === "character"
-      ? "CHARACTER"
+      ? "ACTOR"
       : props.kind === "place"
-        ? "PLACE"
+        ? "SCREEN / SYSTEM"
         : props.kind === "plot"
-          ? "PLOT"
+          ? "DECISION / OUTCOME"
           : props.kind === "note"
-            ? "NOTE"
-            : "REGION";
+            ? "GAP / UNKNOWN"
+            : "APPLICATION AREA";
 
   return (
     <div className={`lsw-card lsw-card-${props.kind}${props.pulsing ? " pulse" : ""}`}>

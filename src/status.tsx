@@ -1,5 +1,3 @@
-import { MAX_CARDS } from "./world";
-
 type Props = {
   supported: boolean;
   toolCount: number;
@@ -15,15 +13,15 @@ export function StatusChip({ supported, toolCount }: Props) {
   }
   return (
     <span className="lsw-chip lsw-chip-warn">
-      WebMCP unsupported — open in ChatGPT
+      WebMCP unavailable — use a WebMCP-enabled browser
     </span>
   );
 }
 
 export function CardCount({ cardCount }: { cardCount: number }) {
   return (
-    <span className="lsw-count">
-      {cardCount} / {MAX_CARDS}
+    <span className="lsw-count" aria-label={`${cardCount} graph items`}>
+      {cardCount} items
     </span>
   );
 }

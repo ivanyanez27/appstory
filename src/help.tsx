@@ -1,21 +1,23 @@
 import { useState } from "react";
-import { TOOLS } from "./tools";
+import { APP_STORY_TOOLS } from "./AppStoryTools";
 
 export function HowToPlay() {
   const [open, setOpen] = useState(false);
   return (
     <div className="lsw-help">
       <button type="button" className="lsw-help-btn" onClick={() => setOpen((v) => !v)}>
-        How to play
+        How it works
       </button>
       {open && (
         <div className="lsw-help-pop">
-          <p>1. Open this page in ChatGPT’s in-app browser (or Chrome 149+ with WebMCP enabled).</p>
-          <p>2. Ask it to start a world — “Let’s make a fantasy story in a small kingdom…”</p>
-          <p>3. Drag cards, edit text, attach image URLs, draw if you want.</p>
-          <p className="lsw-help-label">Agent tools</p>
+          <p>1. Connect a public GitHub repository or choose a local folder.</p>
+          <p>2. Review the file scope, then allow source access.</p>
+          <p>3. Ask your WebMCP agent to map the main UI flows.</p>
+          <p>4. Review and accept the analysis proposal.</p>
+          <p>5. Open a screen to see its evidence, technical flow, and possible gaps.</p>
+          <p className="lsw-help-label">WebMCP tools</p>
           <ul>
-            {TOOLS.map((t) => (
+            {APP_STORY_TOOLS.map((t) => (
               <li key={t.name}>
                 <strong>{t.title}</strong> — {t.description}
               </li>

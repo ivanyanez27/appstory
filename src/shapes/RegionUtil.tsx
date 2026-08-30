@@ -6,6 +6,7 @@ import {
   type TLShape,
 } from "tldraw";
 import type { StoryCardProps } from "./types";
+import { StoryShapeSvg } from "./shapeSvg";
 
 type RegionShape = TLShape<"lsw-region">;
 
@@ -64,5 +65,9 @@ export class RegionShapeUtil extends BaseBoxShapeUtil<RegionShape> {
         </div>
       </HTMLContainer>
     );
+  }
+
+  override toSvg(shape: RegionShape) {
+    return <StoryShapeSvg kind="region" props={shape.props} />;
   }
 }

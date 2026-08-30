@@ -6,6 +6,7 @@ import {
   type TLShape,
 } from "tldraw";
 import { CardFace } from "./cardFace";
+import { StoryShapeSvg } from "./shapeSvg";
 import type { StoryCardProps, StoryShapeType } from "./types";
 
 const props: RecordProps<TLShape<StoryShapeType>> = {
@@ -74,6 +75,10 @@ function createUtil(
           />
         </HTMLContainer>
       );
+    }
+
+    override toSvg(shape: TLShape<typeof type>) {
+      return <StoryShapeSvg kind={kind} props={shape.props} />;
     }
   };
 }
