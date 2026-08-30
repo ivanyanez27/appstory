@@ -6,3 +6,6 @@ dist/
 .env
 .env.*
 .wrangler/
+
+.impeccable/hook.cache.json
+.impeccable/config.local.json
