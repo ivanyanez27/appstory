@@ -125,6 +125,9 @@ export function applyWorld(editor: Editor, next: World): void {
             start: { x: 0, y: 0 },
             end: { x: 1, y: 1 },
             richText: toRichText(link.label || " "),
+            // Labels wrap to the arrow's length. At the default size a short
+            // connection broke "connect()" across three lines.
+            size: "s",
           },
           meta: { lswLabel: link.label },
         });
