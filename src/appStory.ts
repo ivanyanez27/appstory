@@ -147,6 +147,18 @@ export function proposalToWorld(
       }
     }
   }
+  // Canvas layout. The column pitch leaves room between cards for an arrow
+  // label: tldraw wraps a label to the arrow's length, and at the previous
+  // 40px gap "connect()" broke across three lines.
+  const CARD_W = 260;
+  const NOTE_W = 240;
+  const COLUMNS = 3;
+  const COLUMN_PITCH = 380;
+  const ROW_PITCH = 240;
+  const FLOW_PADDING = 40;
+  const FLOW_W = (COLUMNS - 1) * COLUMN_PITCH + CARD_W + FLOW_PADDING * 2;
+  const FLOW_PITCH = FLOW_W + 120;
+
   const visibleNodes = proposal.nodes.filter(
     (node) => flowVisibleIds.has(node.id) && (!technicalKinds.has(node.kind) || technicalIds.has(node.id)),
   );
@@ -159,10 +171,12 @@ export function proposalToWorld(
     name: expanded.has(flow.id) ? flow.title : `${flow.title} · collapsed`,
     summary: "UI Flow",
     imageUrl: null,
-    x: flowIndex * 1100 - 40,
-    y: -40,
-    w: expanded.has(flow.id) ? 1040 : 340,
-    h: expanded.has(flow.id) ? Math.max(420, Math.ceil(expandedNodes.length / 3) * 240 + 100) : 120,
+    x: flowIndex * FLOW_PITCH - FLOW_PADDING,
+    y: -FLOW_PADDING,
+    w: expanded.has(flow.id) ? FLOW_W : 340,
+    h: expanded.has(flow.id)
+      ? Math.max(420, Math.ceil(expandedNodes.length / COLUMNS) * ROW_PITCH + 100)
+      : 120,
   };
   });
 
@@ -178,9 +192,9 @@ export function proposalToWorld(
       name: node.title,
       summary: `${node.applicationArea} · ${node.kind.replaceAll("_", " ")} · ${node.confidence.label[0].toUpperCase()}${node.confidence.label.slice(1)} · ${node.confidence.score}% · ${node.evidence.length} source${node.evidence.length === 1 ? "" : "s"}`,
       imageUrl: null,
-      x: flowIndex * 1100 + (localIndex % 3) * 300,
-      y: Math.floor(localIndex / 3) * 240 + 60,
-      w: type === "note" ? 240 : 260,
+      x: flowIndex * FLOW_PITCH + (localIndex % COLUMNS) * COLUMN_PITCH,
+      y: Math.floor(localIndex / COLUMNS) * ROW_PITCH + 60,
+      w: type === "note" ? NOTE_W : CARD_W,
       h: type === "note" ? 120 : 150,
     });
   }

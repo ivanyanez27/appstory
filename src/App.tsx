@@ -484,7 +484,7 @@ export default function App() {
             <ul className="app-story-flow-list">
               {flows.map((flow) => (
                 <li key={flow.id}>
-                  <strong>{flow.title}</strong> · {flow.nodeIds.length} items
+                  <strong>{flow.title}</strong> · {flow.nodeIds.length} item{flow.nodeIds.length === 1 ? "" : "s"}
                   <button type="button" aria-expanded={expandedFlowIds.has(flow.id)} onClick={() => toggleFlow(flow.id)}>
                     {expandedFlowIds.has(flow.id) ? "Collapse flow" : "Expand flow"}
                   </button>
