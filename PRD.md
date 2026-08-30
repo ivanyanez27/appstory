@@ -4,7 +4,9 @@
 
 **Repository:** [ivanyanez27/storytime](https://github.com/ivanyanez27/storytime)
 
-**Status:** Core product implemented; browser and release verification remain
+**Status:** Core product implemented and deployed; release verification in progress
+
+**Live:** [app-story.ivanyanez27.workers.dev](https://app-story.ivanyanez27.workers.dev)
 
 **Updated:** 30 August 2026
 

@@ -89,7 +89,13 @@ npm run dev
 npm run build
 ```
 
-Deploy the `dist/` folder to a static HTTPS host such as Netlify, Cloudflare Pages, or Vercel.
+Live: [app-story.ivanyanez27.workers.dev](https://app-story.ivanyanez27.workers.dev)
+
+Deploy the `dist/` folder to a static HTTPS host. Configs for three are in this repo:
+
+- **Cloudflare Workers** (current deployment): `npm run deploy`, or `npx wrangler deploy` after `npm run build`. `wrangler.jsonc` serves `dist/` as static assets; `worker/index.ts` stamps every response with the two WebMCP headers above, matching what `public/_headers` does for Netlify and `vercel.json` does for Vercel.
+- **Netlify**: connect the repo; `netlify.toml` sets the build command and headers.
+- **Vercel**: connect the repo; `vercel.json` sets the headers.
 
 ## Product documents
 
