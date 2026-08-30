@@ -50,6 +50,9 @@ describe("getRepositoryFileEligibility", () => {
     [".env.local", "environment file"],
     ["config/private-key.pem", "likely secret"],
     ["credentials.json", "likely secret"],
+    ["src/secrets.local.json", "likely secret"],
+    ["config/api_credentials.json", "likely secret"],
+    ["top-secret-plan.md", "likely secret"],
   ])("excludes %s as %s", (path, reason) => {
     expect(getRepositoryFileEligibility({ path, size: 100 })).toEqual({
       eligible: false,
@@ -63,6 +66,11 @@ describe("getRepositoryFileEligibility", () => {
     ).toEqual({ eligible: true });
     expect(
       getRepositoryFileEligibility({ path: ".gitignore", size: 100 }),
+    ).toEqual({ eligible: true });
+    // "secret(s)"/"credential(s)" must be a bounded filename segment, not a
+    // substring match, or ordinary words get swept up with it.
+    expect(
+      getRepositoryFileEligibility({ path: "src/secretary.ts", size: 100 }),
     ).toEqual({ eligible: true });
   });
 

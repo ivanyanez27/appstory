@@ -174,7 +174,12 @@ export function getDefaultExclusionReason(
   if (
     SECRET_FILENAMES.has(filename) ||
     SECRET_EXTENSIONS.has(extension) ||
-    /^service-account(?:[._-].*)?\.json$/.test(filename)
+    /^service-account(?:[._-].*)?\.json$/.test(filename) ||
+    // A fixed filename list only catches names someone thought to enumerate.
+    // "secrets.local.json" or "api_credentials.json" read clean through the
+    // list above; this catches "secret(s)"/"credential(s)" as a bounded
+    // segment of the filename without flagging words like "secretary".
+    /(?:^|[._-])(?:secrets?|credentials?)(?:[._-]|$)/.test(filename)
   ) {
     return "likely secret";
   }
