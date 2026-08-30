@@ -111,5 +111,10 @@ describe("App Story integration", () => {
       { itemId: "screen:home", path: "src/App.tsx", startLine: 1, endLine: 4 },
     ]);
     expect(findUnreadEvidence(proposal, [{ path: "src/App.tsx", startLine: 1, endLine: 4 }])).toEqual([]);
+    // Evidence 1-4 read across two adjacent windows (no single window contains it).
+    expect(findUnreadEvidence(proposal, [
+      { path: "src/App.tsx", startLine: 1, endLine: 2 },
+      { path: "src/App.tsx", startLine: 3, endLine: 6 },
+    ])).toEqual([]);
   });
 });

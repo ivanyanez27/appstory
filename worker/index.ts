@@ -1,7 +1,8 @@
 // Serves the built static app from `dist` and stamps every response with the
-// two headers the WebMCP origin isolation contract requires (PRD section 14).
-// `public/_headers`, `netlify.toml`, and `vercel.json` cover the same
-// requirement for Netlify/Vercel; this is the Cloudflare Workers equivalent.
+// two headers the WebMCP origin isolation contract requires (PRD section 14)
+// plus three defense-in-depth headers (nosniff, no-referrer, frame-deny).
+// `public/_headers`, `netlify.toml`, and `vercel.json` carry the same set for
+// Netlify/Vercel; this is the Cloudflare Workers equivalent.
 
 export interface Env {
   ASSETS: Fetcher;
@@ -13,6 +14,9 @@ export default {
     const headers = new Headers(response.headers);
     headers.set("Origin-Agent-Cluster", "?1");
     headers.set("Permissions-Policy", "tools=(self)");
+    headers.set("X-Content-Type-Options", "nosniff");
+    headers.set("Referrer-Policy", "no-referrer");
+    headers.set("X-Frame-Options", "DENY");
     return new Response(response.body, {
       status: response.status,
       statusText: response.statusText,
