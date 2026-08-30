@@ -2,7 +2,10 @@
   --parchment: #e8d9b8;
   --parchment-deep: #e4d2a8;
   --ink: #3a2a12;
-  --gold: #8b6914;
+  /* Darkened from the original #8b6914 (3.64:1 on parchment) to clear the
+     4.5:1 WCAG AA minimum for normal text; every use of this token in
+     styles.css is text color except the region border. */
+  --gold: #6b5010;
   --rule: #c4a574;
 }
 
@@ -224,11 +227,13 @@ body {
   min-width: 16rem;
   padding: 0.35rem 0.5rem;
   border: 1px solid var(--rule);
-  background: white;
+  background: #fff8e8;
   color: var(--ink);
 }
 .app-story-source button,
 .app-story-review button,
+.app-story-outline button,
+.app-story-gap-review button,
 .lsw-danger-btn {
   border: 1px solid var(--rule);
   border-radius: 4px;
@@ -236,8 +241,38 @@ body {
   background: #f4ead0;
   color: var(--ink);
   cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
 }
 .app-story-source button:disabled { cursor: wait; opacity: 0.65; }
+.app-story-source button:hover:not(:disabled),
+.app-story-review button:hover:not(:disabled),
+.app-story-outline button:hover:not(:disabled),
+.app-story-gap-review button:hover:not(:disabled),
+.lsw-danger-btn:hover:not(:disabled),
+.lsw-help-btn:hover {
+  background: #fff8e8;
+  border-color: var(--gold);
+}
+.app-story-source button:active:not(:disabled),
+.app-story-review button:active:not(:disabled),
+.app-story-outline button:active:not(:disabled),
+.app-story-gap-review button:active:not(:disabled),
+.lsw-danger-btn:active:not(:disabled),
+.lsw-help-btn:active {
+  transform: translateY(1px);
+}
+.app-story-source button:focus-visible,
+.app-story-review button:focus-visible,
+.app-story-outline button:focus-visible,
+.app-story-gap-review button:focus-visible,
+.lsw-danger-btn:focus-visible,
+.lsw-help-btn:focus-visible,
+.app-story-source input:focus-visible,
+.lsw-world-name:focus-visible,
+.lsw-card-input:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
 .app-story-repository-state { justify-content: flex-end; }
 .app-story-error { margin: 0; color: #8b2e24; }
 .lsw-danger-btn { color: #8b2e24; }
