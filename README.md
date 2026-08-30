@@ -1,61 +1,103 @@
-# Living Story World
+# App Story
 
-A parchment infinite canvas where a **human and ChatGPT build a story universe on the same page**. ChatGPT writes; the board is the living world. Agents do not click around. They call WebMCP tools that drop characters, places, plot beats, notes, regions, and arrows onto the canvas.
+App Story turns a public GitHub repository into an evidence-backed visual story of an application. A mixed product team can review the main UI flow, open technical details, and find possible missing paths on one shared canvas.
 
 Built for the [WebMCP Challenge](https://openai.com/webmcp-challenge/).
 
-## Why this exists
+## What App Story does
 
-Writers, game masters, and kids already talk to ChatGPT about stories. The conversation stays in chat while the world stays in their head. This app gives that conversation a **shared surface**: you drag Queen Lyra toward the woods, the agent sees she is selected, and the next scene appears as a card you can both edit.
+The core workflow is:
 
-That is the future of the open web this challenge asks for — humans and agents collaborating in one interface, with the site declaring exactly what the agent may do.
+1. Connect a public GitHub repository or choose a local repository folder.
+2. Review the indexed file scope and exclusions.
+3. Give separate consent before an agent can read source text.
+4. Ask a WebMCP agent to create an analysis proposal.
+5. Review and accept an evidence-backed UI flow.
+6. Expand a screen to see material technical steps.
+7. Review confidence factors, source evidence, and possible gaps.
 
-## How to play
+The accepted proposal changes the graph only after human review. Repository text is untrusted input. App Story does not execute repository code or render source text as active HTML.
 
-1. Open the live site in **ChatGPT’s desktop in-app browser** (WebMCP works out of the box).
-2. Say: *Let’s make a fantasy story. Start with a small kingdom called Eldoria that has a young queen named Lyra who is afraid of the dark, and a mysterious forest called the Whispering Woods.*
-3. Drag cards, type on them, attach `https` image URLs.
-4. Select a card and ask what happens next — `get_world_state` includes `selectedIds` so the agent knows who you mean.
+App Story supports public GitHub repositories and local folders. Project Files can export and import accepted analysis. Markdown, SVG, and PNG exports can share the accepted review without repository source content or permissions.
 
-### Chrome (local)
+App Story does not include private repository authentication, accounts, a backend, live collaboration, repository execution, or screen capture.
 
-1. `chrome://flags/#enable-webmcp-testing` → Enabled → relaunch.
-2. Optional: [Model Context Tool Inspector](https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd).
-3. `npm run dev` and open the local URL (HTTPS/localhost is a trustworthy origin).
+## Main features
 
-## Tools
+- Public GitHub connection pinned to one commit
+- Local folder indexing with a stable file fingerprint
+- File exclusions for dependencies, build output, binaries, environment files, and likely secrets
+- Separate consent before WebMCP can return source text
+- Bounded source reads with visible Read Records
+- Transactional Analysis Proposals that need human acceptance
+- Expandable UI Flows and Technical Flows on a tldraw canvas
+- Keyboard-accessible outline with Evidence, confidence, and gap review
+- Project File import and export
+- Markdown, SVG, and PNG export
+- Local browser persistence and confirmed project deletion
 
-Twelve in-page tools on `document.modelContext`, registered with Chrome’s [`use-webmcp-tool`](https://github.com/GoogleChromeLabs/use-webmcp-tool) hook:
+## WebMCP tools
 
-| Tool | Role |
-|---|---|
-| `get_world_state` | Compact index + current selection (≤1.5K) |
-| `inspect_element` | Full card / link |
-| `add_character` / `add_place` / `add_plot_point` | Story cards |
-| `add_note` / `add_region` | Notes and labeled frames |
-| `connect_elements` | Labeled arrows |
-| `update_element` / `set_element_image` | Edit |
-| `focus_element` | Pan/zoom |
-| `delete_element` | Remove (human can undo) |
+The page registers six tools on `document.modelContext`:
 
-Add-tools unregister at 50 cards. Read tools set `readOnlyHint`. User text and image URLs set `untrustedContentHint`.
+- `get_project_state`
+- `search_repository_index`
+- `read_repository_source`
+- `get_analysis_state`
+- `submit_analysis_batch`
+- `finalize_analysis_proposal`
 
-## Stack
+Read operations report their file access. Proposal output must cite valid indexed source locations before it can enter review. Repository and analysis text is untrusted data, not agent instructions.
 
-Vite, React, TypeScript, [tldraw](https://tldraw.dev), `use-webmcp-tool`, `webmcp-types`. No backend. State lives in this browser (`localStorage`).
+Use ChatGPT's in-app browser, or a Chrome version that supports WebMCP testing.
 
-Headers: `Origin-Agent-Cluster: ?1` and `Permissions-Policy: tools=(self)` (required for Chrome WebMCP).
+### Chrome for local development
 
-## Develop
+1. Open `chrome://flags/#enable-webmcp-testing`.
+2. Enable the flag and relaunch Chrome.
+3. Run `npm run dev`.
+4. Open the local URL. Localhost is a trustworthy origin.
+
+The [Model Context Tool Inspector](https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd) is optional.
+
+## Security model
+
+- Repository selection does not grant source access.
+- The app reads only approved, indexed text files.
+- Each source request is limited to 500 lines.
+- The app does not execute repository code.
+- Source text is rendered as inert text.
+- Analysis batches are transactional and cannot change the accepted graph directly.
+- GitHub Evidence links point to the analyzed commit.
+
+## Technology
+
+App Story uses Vite, React, TypeScript, [tldraw](https://tldraw.dev), and `use-webmcp-tool`. It has no backend. Project state stays in the browser.
+
+The app sends these headers for WebMCP:
+
+- `Origin-Agent-Cluster: ?1`
+- `Permissions-Policy: tools=(self)`
+
+## Local development
 
 ```bash
 npm install
 npm test
+npm run lint
 npm run dev
 npm run build
 ```
 
-Deploy the `dist/` folder to Netlify, Cloudflare Pages, or Vercel (HTTPS).
+Deploy the `dist/` folder to a static HTTPS host such as Netlify, Cloudflare Pages, or Vercel.
+
+## Product documents
+
+- [Essential milestone specification](docs/specs/2026-08-27-app-story-essential-milestone.md)
+- [Implementation plan](docs/plans/2026-08-27-app-story-essential-milestone.md)
+- [Product requirements](PRD.md)
+- [Glossary and accepted domain decisions](CONTEXT.md)
+- [Architecture decisions](docs/adr/0001-progressive-flow-graph.md)
 
 ## License
 

@@ -1,249 +1,238 @@
-# Product Requirements Document — Living Story World
+# Product requirements — App Story
 
-**Product:** Living Story World  
-**Repo:** [ivanyanez27/storytime](https://github.com/ivanyanez27/storytime) (`feat/living-story-world`)  
-**Status:** v1 implemented locally and on GitHub; not yet deployed to a live HTTPS URL  
-**Date:** 2026-08-26  
-**Hackathon:** [WebMCP Challenge](https://openai.com/webmcp-challenge/) — submissions close 2026-09-03  
-**Related:** `docs/superpowers/specs/2026-08-25-living-story-world-design.md`, `docs/superpowers/plans/2026-08-25-living-story-world.md`, `README.md`
+**Product:** App Story
 
----
+**Repository:** [ivanyanez27/storytime](https://github.com/ivanyanez27/storytime)
 
-## 1. Summary
+**Status:** Core product implemented; browser and release verification remain
 
-Living Story World is a storybook parchment canvas where a **human and ChatGPT co-build a story universe on the same page**. The person pans, drags, and edits. ChatGPT does not scrape or click the UI. The site exposes structured **WebMCP tools** so the agent can add characters, places, plot beats, notes, regions, and arrows into the live board.
+**Updated:** 30 August 2026
 
-The product is a single static web app. There is no backend and no app-owned chatbot. ChatGPT (or Chrome with WebMCP enabled) is the agent. The page is the world.
+**Event:** [WebMCP Challenge](https://openai.com/webmcp-challenge/)
 
----
+## 1. Product summary
+
+App Story turns a public GitHub repository or local source folder into an evidence-backed visual story of an application.
+
+A WebMCP agent reads only approved source ranges and proposes UI Flows. A person reviews the proposal before it changes the accepted graph. Product, design, engineering, and quality teams can then inspect Screens, Technical Flows, Evidence, confidence, and Possible Gaps on one shared canvas.
+
+App Story is a static browser application. It has no backend and does not run repository code.
 
 ## 2. Problem
 
-People already use ChatGPT to invent stories, campaigns, and characters. That work stays trapped in a chat transcript. The world has no spatial memory: who is where, what happened last, what the human just moved.
+Software behavior is spread across routes, Screens, validation, tests, and service code. This makes it hard for a mixed team to answer simple questions:
 
-Meanwhile, agents that “use websites” by clicking are slow and brittle. WebMCP exists so a site can declare real actions instead of hoping the agent guesses the DOM.
+- What are the main user journeys?
+- Which Screens and systems take part in each journey?
+- Which source lines support the analysis?
+- Where is Evidence weak, conflicting, or missing?
+- Which Possible Gaps need human review?
 
-**Gap:** there is no simple, beautiful, agent-native place where a person and an agent share one story board.
+Code maps and call graphs contain too much implementation detail. Static flow diagrams become stale and often do not show their Evidence. App Story gives the team a progressive graph that remains tied to one Repository Revision.
 
-**Audience:** writers, tabletop game masters, and kids who want to build a story *with* an agent rather than only *talk about* one.
+## 3. Users
 
----
+Primary users are product managers, designers, software engineers, quality engineers, security reviewers, and other team members who need to understand application behavior without reading the full repository.
 
-## 3. Goals
+## 4. Product goals
 
-### Product goals
+1. Create a readable UI Flow Overview from repository Evidence.
+2. Keep source access explicit, bounded, visible, and safe.
+3. Keep agent proposals separate from accepted analysis until human review.
+4. Show confidence and Impact as different concepts.
+5. Give keyboard users access to the same review data as the canvas.
+6. Let a team export accepted analysis without source text or repository permission.
 
-1. Make human + agent collaboration on a story **visible and spatial**.
-2. Expose a non-trivial WebMCP surface (12 tools, annotations, selection-aware state, dynamic registry).
-3. Feel like a finished storybook product in a 60–90s demo, not a tool-catalog demo.
+## 5. Non-goals
 
-### Hackathon judging (what we optimize for)
+App Story does not provide:
 
-| Criterion | How this product answers it |
+- Private GitHub repository authentication
+- Accounts, a backend, or live collaboration
+- Repository execution or automatic application startup
+- Screen Capture collection
+- Source-code storage in Project Files
+- Automatic gap confirmation
+- Native UIKit, Android Views, Flutter, SwiftUI, or Jetpack Compose discovery
+- Concurrent proposal-writing agents
+
+## 6. Core workflow
+
+1. A person connects a public GitHub repository or chooses a local folder.
+2. App Story creates an index and shows approved and excluded files.
+3. The person grants separate Repository Consent.
+4. A WebMCP agent searches the index and reads bounded source ranges.
+5. App Story records every successful source read.
+6. The agent submits transactional Analysis Proposal batches.
+7. The agent finalizes the proposal.
+8. The person reviews and accepts or discards the proposal.
+9. App Story shows the accepted UI Flow Overview on the canvas and in the outline.
+10. The person expands a Flow or Screen, opens Evidence, and reviews Possible Gaps.
+
+## 7. Repository connection
+
+### Public GitHub repositories
+
+- Accept a valid `github.com` repository URL.
+- Support an optional ref and subdirectory.
+- Resolve the selected state to a full commit SHA.
+- Use commit-pinned Evidence links.
+- Explain connection and access errors without exposing internal details.
+
+### Local folders
+
+- Use the browser directory picker.
+- Build a stable fingerprint from approved files.
+- Do not persist local directory handles, local file paths outside the index, source text, consent, or Read Records.
+- Require the person to reconnect the folder before a later source read.
+
+### Index rules
+
+- Exclude Git metadata, dependencies, build output, binaries, environment files, likely secrets, unsafe paths, and files larger than 1 MB.
+- Do not retain complete source files in the index.
+- Show whether indexing stopped at a platform limit.
+
+## 8. Repository trust model
+
+- Repository selection does not grant Repository Consent.
+- Repository paths and text are untrusted analysis data, not agent instructions.
+- Source reads require consent, an indexed approved file, a reason, and a valid line range.
+- One source read can return no more than 500 lines.
+- Source excerpts render as inert text.
+- App Story never executes repository code or renders repository markup as active HTML.
+- Successful reads create visible Read Records with the path, reason, size, time, and line range.
+- Complete source text does not enter browser persistence or Project Files.
+
+## 9. Analysis model
+
+### Node kinds
+
+- Actor
+- Screen
+- Decision
+- System
+- Data Store
+- External System
+- Outcome
+- Possible Gap
+- Unknown Path
+
+### Connection kinds
+
+- User Action
+- Screen Transition
+- Data Transfer
+- System Event
+- Validation Result
+- Dependency
+
+Each discovered node and connection must have a stable identity, indexed Evidence, Evidence Factors, and an AI Confidence Estimate.
+
+### Confidence
+
+App Story calculates one label and percentage from Evidence Factors:
+
+- **Confirmed:** 80–100%, traceable, and supported by direct source Evidence
+- **Inferred:** 40–79% and traceable
+- **Unknown:** 0–39% or not traceable
+
+Strong conflicting Evidence prevents a Confirmed label. Confidence describes Evidence quality. It does not describe business Impact.
+
+### Gap review
+
+A person can set a Possible Gap or Unknown Path to:
+
+- Possible
+- Confirmed
+- Accepted Risk
+- Not Applicable
+
+The person also selects low, medium, high, or critical Impact. A reason is required for each status other than Possible. A supplied reviewer name is unverified.
+
+## 10. Proposal safety
+
+- Only one Analysis Session can write the current proposal.
+- Every proposal batch is validated as one transaction.
+- Invalid Evidence, node kinds, endpoints, identities, URLs, confidence data, or duplicates reject the full batch.
+- Proposal submission does not change the accepted graph.
+- Finalization marks a proposal ready for review but does not accept it.
+- Only a human action can accept or discard a finalized proposal.
+
+## 11. Visual and accessible review
+
+- Show a Flow Overview before technical detail.
+- Group nodes by UI Flow and Application Area.
+- Let the person expand and collapse each Flow.
+- Let the person expand a Screen into its material Technical Flow.
+- Show confidence, source count, and gap state without relying on color alone.
+- Provide a keyboard-accessible outline from the same accepted analysis data.
+- Show Evidence Factors, AI reasons, connections, Evidence references, Read Records, and gap controls in the outline.
+
+## 12. WebMCP tools
+
+App Story registers six tools:
+
+| Tool | Purpose |
 |---|---|
-| **WebMCP leverage** | 12 real tools on `document.modelContext`, compact vs inspect, `selectedIds`, abort, `readOnlyHint` / `untrustedContentHint`, add-tools unregister at cap 50, Chrome `use-webmcp-tool` lifecycle. |
-| **Execution** | Full chrome: header, How to play, legend, empty state, persist, parchment theme, toasts, pulse. |
-| **Potential impact** | Shared memory for story collaboration — a real job chat cannot do well. |
-| **Creativity** | Living narrative canvas, not a storefront, form, or booking flow. |
+| `get_project_state` | Read repository, consent, proposal, and accepted-analysis state |
+| `search_repository_index` | Search approved repository paths without source text |
+| `read_repository_source` | Read one approved range and create a Read Record |
+| `get_analysis_state` | Read a compact index of accepted and proposed graph items |
+| `submit_analysis_batch` | Add one validated transactional batch to the draft proposal |
+| `finalize_analysis_proposal` | Mark the proposal ready for human review |
 
-### Challenge requirement
+Read tools use `readOnlyHint`. Tools that return repository or graph text use `untrustedContentHint`.
 
-Build a WebMCP-powered web app that explores a future of the open web where humans and agents interact, collaborate, and create together — on one interface, with the site declaring what the agent may do.
+## 13. Persistence and sharing
 
----
+- Save current App Story state under `app-story.v1` in browser storage.
+- Keep local repository access and consent out of persisted state.
+- Provide confirmed deletion of App Story project data.
+- Export and import a versioned Project File of no more than 5 MB.
+- Project Files contain repository identity, accepted analysis, gap reviews, and expanded Flow state.
+- Project Files do not contain source text, repository permissions, draft proposals, or Read Records.
+- Export accepted analysis as Markdown, SVG, or PNG.
 
-## 4. Locked product decisions
+## 14. Platform and technology
 
-| Topic | Decision |
-|---|---|
-| Board | Freeform infinite canvas |
-| Look | Storybook parchment (warm paper, ink, gold rules) |
-| Agent | ChatGPT / native WebMCP only — no on-page companion chatbot |
-| Images | Optional `http(s)` URL on character/place/plot cards; no generation |
-| Persistence | `localStorage` in this browser |
-| Engine | tldraw + custom shapes |
-| Stack | Vite, React, TypeScript, `use-webmcp-tool`, `webmcp-types` |
-| Hosting | Static HTTPS (Netlify / Cloudflare Pages / Vercel) |
+- Vite, React, and TypeScript
+- tldraw for the canvas
+- `use-webmcp-tool` for WebMCP registration
+- Browser storage for local project state
+- Static HTTPS hosting
+- `Origin-Agent-Cluster: ?1`
+- `Permissions-Policy: tools=(self)`
 
-### Out of scope for v1
+The canvas must remain useful in browsers without WebMCP. The status control must explain when WebMCP is unavailable.
 
-- On-page LLM or chat panel
-- Backend, accounts, shareable world URLs
-- Agent-generated images
-- Agent freehand pencil
-- Multiplayer
-- A wipe-the-world tool
-- Mobile-first layout
-- Declarative HTML-form WebMCP
-- Cross-origin `exposedTo` / iframe tools
+## 15. Acceptance checks
 
----
+1. A valid public GitHub URL creates a commit-pinned Repository Revision and visible file scope.
+2. A local folder creates a fingerprinted Repository Revision and needs reconnection after reload.
+3. Source reads fail before Repository Consent.
+4. Excluded, oversized, unsafe, or likely-secret files cannot be read.
+5. Approved reads are bounded, inert, marked untrusted, and recorded.
+6. Invalid proposal batches make no partial change.
+7. A finalized proposal does not change the accepted graph before human acceptance.
+8. The canvas and outline show the same accepted items and review data.
+9. A Screen can reveal its material Technical Flow.
+10. GitHub Evidence links point to the analyzed commit and valid lines.
+11. A keyboard-only user can inspect and review all accepted graph information.
+12. Project deletion removes App Story browser data after confirmation.
+13. Project File import rejects invalid, oversized, or unsafe content.
+14. Markdown, SVG, and PNG exports contain accepted analysis only.
 
-## 5. User experience requirements
+## 16. Release requirements
 
-### Human
+- Unit tests, lint, and the production build pass.
+- Browser tests cover repository connection, consent, proposal review, canvas and outline parity, persistence, import and export, keyboard use, and deletion.
+- Security tests cover malformed URLs, excluded files, unsafe paths, prompt-injection text, unsafe links, aborted reads, and invalid proposal batches.
+- The deployed HTTPS response includes the required WebMCP headers.
+- A clean-browser demonstration of the primary workflow takes less than three minutes.
 
-- Open a full-viewport parchment canvas.
-- Edit the world name in the header.
-- Pan, zoom, drag, draw with tldraw’s native tools.
-- Double-click story cards to edit name/summary.
-- See card count (`n / 50`) and WebMCP status.
-- Open **How to play** for the demo script and tool list.
-- See a toast when the agent mutates the board; the affected card is selected and pulses.
+## 17. Related documents
 
-### Agent (ChatGPT or Chrome WebMCP)
-
-- Discover tools on the page (`document.modelContext`).
-- Read a compact world index, including what the human has selected.
-- Inspect one card for full text.
-- Add/update/connect/delete story elements.
-- Focus the camera on a card.
-- Stop adding cards when the world is full (those tools unregister).
-
-### Empty state
-
-Centered hint: “Open this in ChatGPT and say: start a fantasy world.” Hides after the first card.
-
----
-
-## 6. Functional requirements
-
-### Story model
-
-Elements: **character**, **place**, **plot**, **note**, **region**, plus labeled **links** (arrows).
-
-- Hard cap: **50 cards** (links do not count).
-- Auto-layout on a 260px grid, 4 columns, when `x`/`y` omitted.
-- IDs generated by the app (`character_ab12cd34`, …). Agents never invent IDs.
-- Delete of a card removes incident links.
-- Image URLs must be `http:` or `https:`. Notes and regions cannot have images.
-
-### WebMCP tools (12)
-
-| Tool | Purpose | Notes |
-|---|---|---|
-| `get_world_state` | Compact index + `selectedIds` | `readOnlyHint`, `untrustedContentHint`, ≤ ~1.5K JSON |
-| `inspect_element` | Full card or link | `readOnlyHint`, `untrustedContentHint` |
-| `add_character` | Character card | Unregisters at 50 cards |
-| `add_place` | Place card | Unregisters at 50 cards |
-| `add_plot_point` | Plot beat | Unregisters at 50 cards |
-| `add_note` | Sticky note (`text` → name) | Unregisters at 50 cards |
-| `add_region` | Dashed labeled frame | Unregisters at 50 cards |
-| `connect_elements` | Labeled arrow | Rejects self-link and duplicates |
-| `update_element` | Name, summary, position, size | |
-| `set_element_image` | Set/clear image URL | `untrustedContentHint` |
-| `focus_element` | Pan/zoom to a card | `readOnlyHint` |
-| `delete_element` | Remove card or link | Human can undo (Ctrl/Cmd+Z) |
-
-Expected tool errors return `{ ok: false, error }` and do not mutate. Cancelled executions return `{ ok: false, error: "cancelled" }`.
-
-### Persistence
-
-Save tldraw snapshot + world name to `localStorage` key `lsw.v1`. Corrupt/missing data loads an empty world. Quota failure keeps memory and toasts once.
-
-### Platform
-
-- Feature-detect `document.modelContext` (fallback `navigator.modelContext`).
-- If missing: canvas still works; chip says to open ChatGPT.
-- Response headers: `Origin-Agent-Cluster: ?1`, `Permissions-Policy: tools=(self)`.
-- Open source: MIT.
-
----
-
-## 7. What has already been done
-
-### Discovery and design (2026-08-25)
-
-- Chose Living Story World over other hackathon ideas (highest wow for judges).
-- Locked: freeform canvas, parchment look, ChatGPT-only agent, optional image URLs, localStorage, tldraw.
-- Wrote and reviewed the design spec.
-- Aligned the spec with the [W3C WebMCP draft](https://webmachinelearning.github.io/webmcp/) and [Chrome WebMCP docs](https://developer.chrome.com/docs/ai/webmcp) (compact output budget, annotations, abort, origin isolation, visible actuation).
-- Wrote the implementation plan.
-- Chose Chrome’s official React hook `use-webmcp-tool` for registration.
-
-### Implementation (branch `feat/living-story-world`, pushed to GitHub)
-
-| Area | Done |
-|---|---|
-| App scaffold | Vite + React + TypeScript + Vitest |
-| World model | `src/world.ts` — CRUD, cap, links, compact index, inspect |
-| Tool executors | `src/tools.ts` — all 12 tools, abort, selectedIds |
-| Persistence | `src/persist.ts` — localStorage round-trip and corrupt-load |
-| Canvas | tldraw + custom parchment shapes (character, place, plot, note, region) |
-| Adapter | World ↔ tldraw shapes/arrows (`src/adapter.ts`) |
-| WebMCP UI wiring | `src/WorldTools.tsx` — `useWebMCP` per tool; add-tools `enabled` only under cap |
-| Product chrome | Header, world name, status chip, How to play, legend, empty state, toast, pulse |
-| Theme | Parchment CSS |
-| Docs / legal / host | `README.md`, MIT `LICENSE`, `netlify.toml`, `vercel.json`, `public/_headers` |
-| Tests | 23 Vitest tests (world, tools, persist, adapter ids) |
-| Build | `npm run build` succeeds |
-
-### Git history (high level)
-
-1. Design spec  
-2. Spec aligned to WebMCP/Chrome guidance  
-3. Implementation plan  
-4. Vite scaffold  
-5. World model  
-6. Tool executors  
-7. Persist  
-8. Shapes + adapter  
-9. App chrome + `useWebMCP`  
-10. README, MIT, headers  
-
-Remote: `origin/feat/living-story-world` on `https://github.com/ivanyanez27/storytime`.
-
----
-
-## 8. What is not done yet
-
-These are required for a complete hackathon submission, not for the v1 codebase itself:
-
-| Item | Status |
-|---|---|
-| Live HTTPS URL on Netlify / Cloudflare Pages / Vercel / ChatGPT Sites | **Not deployed** |
-| Manual pass in ChatGPT’s in-app browser | **Not verified in this environment** |
-| Manual pass in Chrome with `chrome://flags/#enable-webmcp-testing` | **Not verified in this environment** |
-| Recorded 60–90s demo video | **Not recorded** |
-| Devpost / challenge submission form | **Not submitted** |
-| Browser QA of empty state, persist-across-refresh, pulse, How to play | **Code is in; not click-tested here** |
-| Remove leftover Vite starter assets (`src/App.css`, `src/assets/*`) | Cosmetic leftover |
-
-v1 product scope from the spec is implemented. Shipping and judging still need a public URL plus a demo.
-
----
-
-## 9. Success criteria
-
-v1 is successful if:
-
-1. A judge opens the live URL in ChatGPT’s in-app browser and the status chip shows WebMCP ready.
-2. The prompt *“Start a fantasy world in Eldoria with Queen Lyra and the Whispering Woods”* produces cards and links on the parchment without the agent clicking the UI.
-3. Selecting Lyra and asking *“What happens when she enters the forest at night?”* yields a new plot card that uses the selection.
-4. Refreshing the tab restores the world.
-5. In a normal browser without WebMCP, the human can still use the canvas; the chip explains to open ChatGPT.
-
----
-
-## 10. Demo script (for recording)
-
-1. Empty parchment + How to play.  
-2. *“Let’s make a fantasy story. Start with Eldoria, Queen Lyra (afraid of the dark), and the Whispering Woods.”*  
-3. Cards appear; agent connects Lyra to Eldoria and the Woods; toast + pulse.  
-4. Human drags Lyra, types a note, **selects Lyra**.  
-5. *“What happens when she enters the forest at night?”* — plot card + region “The tree line.”  
-6. Optional: `set_element_image` with a public https URL.
-
----
-
-## 11. How to run
-
-```bash
-cd storytime
-npm install
-npm test
-npm run dev
-```
-
-Chrome: enable `chrome://flags/#enable-webmcp-testing`.  
-ChatGPT: open the deployed (or localhost, if the desktop browser allows) URL in the in-app browser.
+- [App Story specification](docs/specs/2026-08-27-app-story-essential-milestone.md)
+- [Implementation and release plan](docs/plans/2026-08-27-app-story-essential-milestone.md)
+- [Domain language](CONTEXT.md)
+- [Architecture decisions](docs/adr/0001-progressive-flow-graph.md)
