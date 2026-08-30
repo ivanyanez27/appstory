@@ -195,6 +195,7 @@ type Props = {
 type RuntimeRefs = {
   proposal: { current: AnalysisProposal };
   sessionId: { current: string | null };
+  readRecords: { current: readonly ReadRecord[] };
 };
 
 function RegisteredAppStoryTool({
@@ -254,7 +255,7 @@ function RegisteredAppStoryTool({
           if (!reason) return { ok: false, error: "A read reason is required." };
           const result = await props.readSource(path, startLine, endLine);
           if (result.ok) {
-            props.onReadRecord({
+            const record: ReadRecord = {
               id: crypto.randomUUID(),
               path,
               reason,
@@ -263,7 +264,12 @@ function RegisteredAppStoryTool({
               totalLines: result.totalLines,
               startLine: result.startLine,
               endLine: result.endLine,
-            });
+            };
+            // Record the read on the ref as well as in React state. An agent
+            // routinely submits a batch in the same tick as the read that
+            // supports it, and the committed prop has not caught up yet.
+            runtime.readRecords.current = [...runtime.readRecords.current, record];
+            props.onReadRecord(record);
           }
           return result;
         }
@@ -296,7 +302,7 @@ function RegisteredAppStoryTool({
               confidence: calculateConfidence(edge.evidence, edge.factors, edge.confidence.traceable, edge.confidence.reason),
             })),
           };
-          const unreadEvidence = findUnreadEvidence(scoredBatch, props.readRecords);
+          const unreadEvidence = findUnreadEvidence(scoredBatch, runtime.readRecords.current);
           if (unreadEvidence.length) {
             return {
               ok: false,
@@ -304,7 +310,7 @@ function RegisteredAppStoryTool({
               unreadEvidence,
             };
           }
-          const lineCounts = new Map(props.readRecords.map((record) => [record.path, record.totalLines]));
+          const lineCounts = new Map(runtime.readRecords.current.map((record) => [record.path, record.totalLines]));
           const repository = {
             files: index.files
               .filter((file) => file.eligibility.eligible && lineCounts.has(file.path))
@@ -344,7 +350,17 @@ export function AppStoryTools(props: Props) {
   const sessionId = useRef(props.analysisSessionId);
   proposal.current = props.proposal;
   sessionId.current = props.analysisSessionId;
-  const runtime = { proposal, sessionId };
+  // Mirror the committed read records, but only when React hands us a new
+  // list. Adopting on every render would drop records appended within the
+  // current tick; comparing lengths would resurrect records that a repository
+  // change or project deletion had cleared.
+  const readRecords = useRef<readonly ReadRecord[]>(props.readRecords);
+  const committedReadRecords = useRef(props.readRecords);
+  if (committedReadRecords.current !== props.readRecords) {
+    committedReadRecords.current = props.readRecords;
+    readRecords.current = props.readRecords;
+  }
+  const runtime = { proposal, sessionId, readRecords };
   return APP_STORY_TOOLS.map((definition) => (
     <RegisteredAppStoryTool key={definition.name} definition={definition} props={props} runtime={runtime} />
   ));
