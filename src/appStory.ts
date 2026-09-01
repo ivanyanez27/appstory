@@ -142,13 +142,13 @@ const TYPE_BY_NODE: Record<(typeof NODE_KINDS)[number], CardType> = {
   unknown_path: "note",
 };
 
-const CARD_W = 260;
-const CARD_H = 150;
-const NOTE_W = 240;
-const NOTE_H = 120;
-const FLOW_PADDING = 60;
-const COLUMN_PITCH = 360;
-const ROW_PITCH = 250;
+const CARD_W = 300;
+const CARD_H = 180;
+const NOTE_W = 270;
+const NOTE_H = 140;
+const FLOW_PADDING = 80;
+const COLUMN_PITCH = 440;
+const ROW_PITCH = 320;
 
 type FlowLayout = {
   positions: ReadonlyMap<string, { x: number; y: number }>;

@@ -38,7 +38,7 @@ function createUtil(
     }
 
     getDefaultProps(): StoryCardProps {
-      return { w: 220, h: 140, name: "", summary: "", imageUrl: "" };
+      return { w: 300, h: 180, name: "", summary: "", imageUrl: "" };
     }
 
     getIndicatorPath(shape: TLShape<typeof type>) {

@@ -29,7 +29,7 @@ export class NoteShapeUtil extends BaseBoxShapeUtil<NoteShape> {
   }
 
   getDefaultProps(): StoryCardProps {
-    return { w: 180, h: 100, name: "", summary: "", imageUrl: "" };
+    return { w: 270, h: 140, name: "", summary: "", imageUrl: "" };
   }
 
   getIndicatorPath(shape: NoteShape) {
