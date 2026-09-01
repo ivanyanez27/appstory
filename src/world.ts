@@ -28,6 +28,9 @@ export type Link = {
   fromId: string;
   toId: string;
   label: string;
+  // Where the label sits along the arrow, 0 (start) to 1 (end). Defaults to
+  // 0.5; `proposalToWorld` fans crowded labels off centre.
+  labelPosition?: number;
 };
 
 export type World = {

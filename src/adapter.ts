@@ -75,6 +75,7 @@ export function applyWorld(editor: Editor, next: World): void {
             end: { x: 1, y: 1 },
             richText: toRichText(link.label || " "),
             size: "m",
+            labelPosition: link.labelPosition ?? 0.5,
           },
           meta: { lswLabel: link.label },
         });
@@ -108,7 +109,10 @@ export function applyWorld(editor: Editor, next: World): void {
         editor.updateShape({
           id,
           type: "arrow",
-          props: { richText: toRichText(link.label || " ") },
+          props: {
+            richText: toRichText(link.label || " "),
+            labelPosition: link.labelPosition ?? 0.5,
+          },
           meta: { lswLabel: link.label },
         });
       }

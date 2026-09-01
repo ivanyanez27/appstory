@@ -32,7 +32,7 @@ describe("App Story integration", () => {
       ["screen:home", "place"],
     ]);
     expect(world.links).toEqual([
-      { id: "link_edge:opens", fromId: "actor:user", toId: "screen:home", label: "Open" },
+      { id: "link_edge:opens", fromId: "actor:user", toId: "screen:home", label: "Open", labelPosition: 0.5 },
     ]);
     expect(world.cards[2].summary).toContain("Confirmed · 90%");
   });
@@ -72,6 +72,27 @@ describe("App Story integration", () => {
     expect(validation.y - signIn.y).toBeGreaterThanOrEqual(320);
     expect(resetGap.y + resetGap.h / 2).toBe(signIn.y + signIn.h / 2);
     expect(resetGap.x).not.toBe(signIn.x);
+
+    // Two connections leave the same row; their labels are fanned off centre
+    // so they do not print on top of each other.
+    const success = proposalToWorld(proposal, "app").links.find((link) => link.id === "link_edge:success")!;
+    const failure = proposalToWorld(proposal, "app").links.find((link) => link.id === "link_edge:failure")!;
+    expect(success.labelPosition).not.toBe(failure.labelPosition);
+    expect(success.labelPosition).toBeGreaterThanOrEqual(0.18);
+    expect(failure.labelPosition).toBeLessThanOrEqual(0.82);
+  });
+
+  it("draws connections only within a flow, not across flows", () => {
+    const proposal: AnalysisProposal = {
+      nodes: [
+        { id: "screen:login", kind: "screen", title: "Log in", applicationArea: "web", flowId: "auth", flowTitle: "Auth", evidence, factors, confidence },
+        { id: "screen:home", kind: "screen", title: "Home", applicationArea: "web", flowId: "main", flowTitle: "Main", evidence, factors, confidence },
+      ],
+      edges: [
+        { id: "edge:cross", kind: "screen_transition", fromId: "screen:login", toId: "screen:home", label: "Success", evidence, factors, confidence },
+      ],
+    };
+    expect(proposalToWorld(proposal, "app").links).toEqual([]);
   });
 
   it("reveals the technical chain for one selected screen", () => {
