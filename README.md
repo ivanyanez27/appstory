@@ -74,7 +74,7 @@ The [Model Context Tool Inspector](https://chromewebstore.google.com/detail/mode
 
 App Story uses Vite, React, TypeScript, [tldraw](https://tldraw.dev), and `use-webmcp-tool`. It has no backend. Project state stays in the browser.
 
-The site has two routes. `/` is a static landing page. `/app` is the canvas application, code-split so a landing visitor does not download the tldraw bundle. A single-page-application fallback serves `index.html` for both, and the client picks the view from `window.location.pathname`.
+The site is one view. Every route renders the canvas application, and a single-page-application fallback serves `index.html` for any path.
 
 Every response carries the two WebMCP origin-isolation headers plus three defense-in-depth headers:
 

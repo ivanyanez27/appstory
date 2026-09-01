@@ -203,7 +203,7 @@ Read tools use `readOnlyHint`. Tools that return repository or graph text use `u
 - `use-webmcp-tool` for WebMCP registration
 - Browser storage for local project state
 - Static HTTPS hosting
-- Two routes from one single-page application: `/` is a static landing page; `/app` is the canvas application, loaded on demand so a landing visitor does not download the canvas bundle.
+- One single-page application. Every route renders the canvas application; a single-page-application fallback serves `index.html` for any path.
 
 Every response carries the WebMCP origin-isolation headers and three defense-in-depth headers:
 

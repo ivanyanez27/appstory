@@ -446,7 +446,15 @@ body {
   font-size: 0.75rem;
   color: var(--text-muted);
 }
-.app-story-outline h2 { margin: 0 0 0.45rem; font-size: 0.9rem; color: var(--text); }
+.app-story-outline-closed { width: auto; }
+.app-story-outline-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.45rem;
+}
+.app-story-outline-head button { margin-left: auto; }
+.app-story-outline h2 { margin: 0; font-size: 0.9rem; color: var(--text); }
 .app-story-outline p { margin: 0.25rem 0; }
 .app-story-outline strong { color: var(--text); }
 .app-story-outline a { color: var(--teal); }
@@ -517,3 +525,34 @@ body {
     transform: none;
   }
 }
+
+/* Source-read log. Shared by the header popover and the outline. */
+.lsw-reads-empty { color: var(--text-muted); margin: 0.4rem 0 0; }
+.lsw-reads-list {
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+.lsw-reads-list > li {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.45rem 0.55rem;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.lsw-reads-list code {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.lsw-reads-range,
+.lsw-reads-time {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+.lsw-reads-reason { color: var(--text-muted); }

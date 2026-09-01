@@ -142,16 +142,26 @@ const TYPE_BY_NODE: Record<(typeof NODE_KINDS)[number], CardType> = {
   unknown_path: "note",
 };
 
-const CARD_W = 300;
-const CARD_H = 180;
-const NOTE_W = 270;
-const NOTE_H = 140;
-const FLOW_PADDING = 80;
-const COLUMN_PITCH = 440;
-const ROW_PITCH = 320;
+const CARD_W = 320;
+const CARD_H = 200;
+const NOTE_W = 280;
+const NOTE_H = 160;
+const FLOW_PADDING = 120;
+// Pitch is card size plus the room a two-line connection label needs between
+// rows and between columns, so arrows never print their text over a card.
+const COLUMN_PITCH = 540;
+const ROW_PITCH = 460;
+// Clear space between one flow region and the next, in both axes.
+const FLOW_GAP = 220;
+// Spread the labels of connections that cross the same row gap along their
+// arrows so they stack apart instead of printing on top of each other.
+const LABEL_FAN = 0.16;
+const LABEL_MIN = 0.18;
+const LABEL_MAX = 0.82;
 
 type FlowLayout = {
   positions: ReadonlyMap<string, { x: number; y: number }>;
+  ranks: ReadonlyMap<string, number>;
   w: number;
   h: number;
 };
@@ -165,7 +175,7 @@ function cardSize(node: AnalysisNode): { w: number; h: number } {
 }
 
 function flowLayout(nodes: readonly AnalysisNode[], edges: readonly AnalysisEdge[]): FlowLayout {
-  if (!nodes.length) return { positions: new Map(), w: 340, h: 120 };
+  if (!nodes.length) return { positions: new Map(), ranks: new Map(), w: 340, h: 120 };
 
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const mainNodes = nodes.filter((node) => !isGap(node));
@@ -236,6 +246,12 @@ function flowLayout(nodes: readonly AnalysisNode[], edges: readonly AnalysisEdge
     nodesByRank.set(level, unanchoredGaps);
   }
 
+  // Every node now sits in a row; that row index is its rank, gaps included.
+  const ranks = new Map<string, number>();
+  for (const [level, row] of nodesByRank) {
+    for (const node of row) ranks.set(node.id, level);
+  }
+
   const rawPositions = new Map<string, { x: number; y: number }>();
   let minX = Infinity;
   let minY = Infinity;
@@ -266,9 +282,38 @@ function flowLayout(nodes: readonly AnalysisNode[], edges: readonly AnalysisEdge
   }
   return {
     positions,
+    ranks,
     w: Math.max(340, maxX - minX + FLOW_PADDING * 2),
     h: Math.max(240, maxY - minY + FLOW_PADDING * 2),
   };
+}
+
+// Fan the labels of connections that share a row gap along their arrows, so
+// two labels in the same band stack apart instead of overprinting.
+function labelPositions(
+  edges: readonly AnalysisEdge[],
+  layouts: ReadonlyMap<string, FlowLayout>,
+): Map<string, number> {
+  const byId = new Map<string, number>();
+  for (const layout of layouts.values()) {
+    const bands = new Map<number, string[]>();
+    for (const edge of edges) {
+      const from = layout.ranks.get(edge.fromId);
+      const to = layout.ranks.get(edge.toId);
+      if (from === undefined || to === undefined) continue;
+      const band = Math.min(from, to);
+      const list = bands.get(band) ?? [];
+      list.push(edge.id);
+      bands.set(band, list);
+    }
+    for (const ids of bands.values()) {
+      ids.forEach((id, index) => {
+        const offset = (index - (ids.length - 1) / 2) * LABEL_FAN;
+        byId.set(id, Math.min(LABEL_MAX, Math.max(LABEL_MIN, 0.5 + offset)));
+      });
+    }
+  }
+  return byId;
 }
 
 export function proposalToWorld(
@@ -323,14 +368,14 @@ export function proposalToWorld(
   let rowHeight = 0;
   for (const [index, flow] of flows.entries()) {
     if (index > 0 && index % 2 === 0) {
-      rowY += rowHeight + 160;
+      rowY += rowHeight + FLOW_GAP;
       firstColumnWidth = 0;
       rowHeight = 0;
     }
     const layout = layouts.get(flow.id)!;
     const w = expanded.has(flow.id) ? layout.w : 340;
     const h = expanded.has(flow.id) ? layout.h : 120;
-    const x = index % 2 === 0 ? 0 : firstColumnWidth + 160;
+    const x = index % 2 === 0 ? 0 : firstColumnWidth + FLOW_GAP;
     flowPositions.set(flow.id, { x, y: rowY });
     if (index % 2 === 0) firstColumnWidth = w;
     rowHeight = Math.max(rowHeight, h);
@@ -371,14 +416,27 @@ export function proposalToWorld(
     });
   }
 
+  // A connection is only drawn when both ends live in the same flow. A layout
+  // is built per flow, so a cross-flow edge would be a long diagonal with its
+  // label stranded over a neighbouring region; the outline and report still
+  // list every edge.
+  const flowById = new Map(visibleNodes.map((node) => [node.id, node.flowId?.trim() || "main"]));
+  const labelPos = labelPositions(proposal.edges, layouts);
+
   return {
     name,
     cards,
-    links: proposal.edges.filter((edge) => visibleIds.has(edge.fromId) && visibleIds.has(edge.toId)).map((edge) => ({
-      id: edge.id.startsWith("link_") ? edge.id : `link_${edge.id}`,
-      fromId: edge.fromId,
-      toId: edge.toId,
-      label: edge.label,
-    })),
+    links: proposal.edges
+      .filter((edge) =>
+        visibleIds.has(edge.fromId) && visibleIds.has(edge.toId) &&
+        flowById.get(edge.fromId) === flowById.get(edge.toId),
+      )
+      .map((edge) => ({
+        id: edge.id.startsWith("link_") ? edge.id : `link_${edge.id}`,
+        fromId: edge.fromId,
+        toId: edge.toId,
+        label: edge.label,
+        labelPosition: labelPos.get(edge.id) ?? 0.5,
+      })),
   };
 }
