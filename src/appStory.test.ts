@@ -68,7 +68,8 @@ describe("App Story integration", () => {
     expect(signIn.y).toBeLessThan(validation.y);
     expect(validation.y).toBeLessThan(dashboard.y);
     expect(error.y).toBe(dashboard.y);
-    expect(error.x).not.toBe(dashboard.x);
+    expect(Math.abs(error.x - dashboard.x)).toBeGreaterThanOrEqual(440);
+    expect(validation.y - signIn.y).toBeGreaterThanOrEqual(320);
     expect(resetGap.y + resetGap.h / 2).toBe(signIn.y + signIn.h / 2);
     expect(resetGap.x).not.toBe(signIn.x);
   });
