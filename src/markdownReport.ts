@@ -15,8 +15,14 @@ function text(value: string): string {
 function evidenceLine(project: AppStoryProject, evidence: EvidenceReference): string {
   const label = text(`${evidence.path}:${evidence.startLine}-${evidence.endLine}`);
   if (project.repository.source !== "github") return `- ${label} (${text(evidence.source)})`;
-  const url = buildGitHubEvidenceUrl({ ...project.repository.revision, ...evidence });
-  return `- [${label}](${url}) (${text(evidence.source)})`;
+  try {
+    const url = buildGitHubEvidenceUrl({ ...project.repository.revision, ...evidence });
+    return `- [${label}](${url}) (${text(evidence.source)})`;
+  } catch {
+    // A hand-edited project can hold an evidence path that fails the link
+    // builder's safety checks; degrade to the plain label rather than abort.
+    return `- ${label} (${text(evidence.source)})`;
+  }
 }
 
 function itemDetails(project: AppStoryProject, item: AnalysisNode | AnalysisEdge): string[] {
@@ -47,25 +53,26 @@ export function buildMarkdownReport(project: AppStoryProject): string {
     "",
     "## Flows",
   ];
+  const nodeById = new Map(analysis.nodes.map((node) => [node.id, node]));
+  const edgeById = new Map(analysis.edges.map((edge) => [edge.id, edge]));
+  const endpointTitle = (id: string): string => nodeById.get(id)?.title ?? id;
   const renderedEdges = new Set<string>();
   for (const flow of flows) {
     lines.push("", `### ${text(flow.title)}`);
     for (const nodeId of flow.nodeIds) {
-      const node = analysis.nodes.find((candidate) => candidate.id === nodeId)!;
+      const node = nodeById.get(nodeId)!;
       lines.push("", `#### ${text(node.title)}`, "", `Application Area: ${text(node.applicationArea)}`, "", ...itemDetails(project, node));
     }
     for (const edgeId of flow.edgeIds) {
-      const edge = analysis.edges.find((candidate) => candidate.id === edgeId)!;
-      const from = analysis.nodes.find((node) => node.id === edge.fromId)?.title ?? edge.fromId;
-      const to = analysis.nodes.find((node) => node.id === edge.toId)?.title ?? edge.toId;
-      lines.push("", `#### ${text(from)} — ${text(edge.label)} → ${text(to)}`, "", ...itemDetails(project, edge));
+      const edge = edgeById.get(edgeId)!;
+      lines.push("", `#### ${text(endpointTitle(edge.fromId))} — ${text(edge.label)} → ${text(endpointTitle(edge.toId))}`, "", ...itemDetails(project, edge));
       renderedEdges.add(edge.id);
     }
   }
   const crossFlowEdges = analysis.edges.filter((edge) => !renderedEdges.has(edge.id));
   if (crossFlowEdges.length) {
     lines.push("", "## Cross-flow connections");
-    for (const edge of crossFlowEdges) lines.push("", `### ${text(edge.fromId)} — ${text(edge.label)} → ${text(edge.toId)}`, "", ...itemDetails(project, edge));
+    for (const edge of crossFlowEdges) lines.push("", `### ${text(endpointTitle(edge.fromId))} — ${text(edge.label)} → ${text(endpointTitle(edge.toId))}`, "", ...itemDetails(project, edge));
   }
   if (gaps.length) {
     lines.push("", "## Gap review");

@@ -1,0 +1,77 @@
+/* App Story brand system — "Deep Ink Canvas" (Brand Guidelines v1.0).
+   Single source of the design tokens. Imported once from main.tsx so both the
+   landing page (landing.css) and the canvas app (styles.css) share it.
+
+   The brand is dark-only by design: the palette below is the whole system.
+   Instrument Sans carries structural type; JetBrains Mono carries commit
+   artifacts, telemetry strings, and tracked labels. */
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces — deep ink spaces, lifted in small steps. */
+  --bg: #070913;            /* Deep Ink Canvas — app and page ground */
+  --bg-elevated: #0e1220;   /* panels, cards, header */
+  --bg-raised: #151b2c;     /* inputs, hover, nested panels */
+  --border: #232b40;        /* hairlines between regions */
+  --border-strong: #33405c; /* focused inputs, emphasised edges */
+
+  /* Text — luminous on ink. */
+  --text: #edeff5;
+  --text-muted: #9ba6bc;
+  --text-faint: #647488;    /* Unknown Gray — also dead zones / unverified */
+
+  /* Confidence + identity spectrum. */
+  --teal: #06b6d4;          /* Telemetry Teal — interactive nodes, data lines, links */
+  --indigo: #6366f1;        /* Developer Indigo — logo mark, focus ring */
+  --green: #10b981;         /* Verified Green — confirmed, commit-backed */
+  --amber: #f59e0b;         /* Inferred Amber — brand accent, inferred paths, CTAs */
+  --gray: #647488;          /* Unknown Gray — unknown paths, deprecated screens */
+
+  /* Roles built from the spectrum. */
+  --accent: var(--amber);        /* wordmark "Story", eyebrows, primary action */
+  --accent-hover: #ffb638;
+  --accent-ink: #1a1204;         /* text on an amber fill */
+  --danger: #f8717f;
+  --focus: var(--indigo);
+
+  /* Type. */
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Mono",
+    Menlo, Consolas, monospace;
+
+  --radius: 8px;
+  --radius-sm: 5px;
+}
+
+/* Tracked mono label — "01 / LOGO & SYSTEM IDENTITY" style. Shared helper. */
+.brand-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Wordmark — "App" in text colour, "Story" in the amber accent, italic. */
+.brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.brand-wordmark .brand-wordmark-story {
+  color: var(--accent);
+  font-style: italic;
+}
+.brand-wordmark svg {
+  display: block;
+  flex-shrink: 0;
+}

@@ -1,5 +1,3 @@
-import type { TLShape } from "tldraw";
-
 export const STORY_SHAPE_TYPES = [
   "lsw-character",
   "lsw-place",
@@ -27,18 +25,6 @@ declare module "@tldraw/tlschema" {
     "lsw-region": StoryCardProps;
   }
 }
-
-export type CharacterShape = TLShape<"lsw-character">;
-export type PlaceShape = TLShape<"lsw-place">;
-export type PlotShape = TLShape<"lsw-plot">;
-export type NoteShape = TLShape<"lsw-note">;
-export type RegionShape = TLShape<"lsw-region">;
-export type StoryShape =
-  | CharacterShape
-  | PlaceShape
-  | PlotShape
-  | NoteShape
-  | RegionShape;
 
 export function isStoryShapeType(type: string): type is StoryShapeType {
   return (STORY_SHAPE_TYPES as readonly string[]).includes(type);

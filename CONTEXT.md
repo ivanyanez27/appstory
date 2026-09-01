@@ -97,7 +97,7 @@ A person-owned description of expected product behavior that has no required rep
 _Avoid_: Assumed path, generated requirement
 
 **Project Export**:
-A portable analysis file that contains the graph, Evidence references, annotations, confidence factors, and repository identity, but no repository source content or secrets.
+A portable analysis file that contains the graph, Evidence references, annotations, confidence factors, and repository identity, but no repository source text and no repository permissions. Its free-text fields hold only agent-authored analysis text that a person reviewed before acceptance.
 _Avoid_: Backup, repository export
 
 **Review Record**:

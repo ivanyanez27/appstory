@@ -2,7 +2,7 @@ import { applyProposalBatch, emptyAnalysisProposal, type AnalysisProposal } from
 import { parseProposalBatch } from "./appStory";
 import { groupFlows } from "./flows";
 import { applyGapReview, type GapReviewMap } from "./gapReview";
-import { isValidGitHubRepositoryIdentity } from "./github";
+import { isSafeRepositoryPath, isValidGitHubRepositoryIdentity } from "./github";
 
 export const MAX_PROJECT_FILE_BYTES = 5_000_000;
 
@@ -59,7 +59,13 @@ function parseAnalysis(value: unknown): AnalysisProposal | null {
   }
   const lineCounts = new Map<string, number>();
   for (const item of [...nodes, ...edges]) {
-    for (const evidence of item.evidence) lineCounts.set(evidence.path, Math.max(lineCounts.get(evidence.path) ?? 0, evidence.endLine));
+    for (const evidence of item.evidence) {
+      // The repository index below is derived from the evidence itself, so the
+      // downstream range checks cannot flag a hostile path. Reject traversal
+      // here, where an imported file is still untrusted input.
+      if (!isSafeRepositoryPath(evidence.path)) return null;
+      lineCounts.set(evidence.path, Math.max(lineCounts.get(evidence.path) ?? 0, evidence.endLine));
+    }
   }
   const result = applyProposalBatch(emptyAnalysisProposal(), { nodes, edges }, {
     files: [...lineCounts].map(([path, lineCount]) => ({ path, lineCount })),

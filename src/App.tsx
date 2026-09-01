@@ -9,6 +9,7 @@ import { HowToPlay } from "./help";
 import { buildGitHubEvidenceUrl, type RepositoryIndex } from "./github";
 import { applyGapReview, type GapImpact, type GapReview, type GapReviewMap, type GapReviewStatus } from "./gapReview";
 import { Legend } from "./legend";
+import { Logo } from "./Logo";
 import { groupFlows } from "./flows";
 import { connectLocalRepository, type LocalDirectoryHandle, type LocalRepositoryConnection } from "./localRepository";
 import { buildMarkdownReport } from "./markdownReport";
@@ -18,7 +19,7 @@ import { connectPublicGitHub, readRepositoryLines, type SourceResult } from "./r
 import { StatusChip, CardCount } from "./status";
 import { AgentToast } from "./toast";
 import { compareAnalysisRevisions } from "./revisionComparison";
-import { webmcpSupported } from "./WorldTools";
+import { webmcpSupported } from "./webmcpSupport";
 import "./styles.css";
 
 const EMPTY = emptyAnalysisProposal();
@@ -79,6 +80,7 @@ export default function App() {
   const [supported, setSupported] = useState(false);
   const [exportingImage, setExportingImage] = useState<"svg" | "png" | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const saveTimer = useRef<number | undefined>(undefined);
   const stateRef = useRef({ projectName, repositoryIndex, repositorySource, consent, acceptedAnalysis, proposal, finalized, readRecords, analysisSessionId, gapReviews, expandedFlowIds });
   stateRef.current = { projectName, repositoryIndex, repositorySource, consent, acceptedAnalysis, proposal, finalized, readRecords, analysisSessionId, gapReviews, expandedFlowIds };
 
@@ -100,6 +102,18 @@ export default function App() {
     };
     if (!saveAppStory(window.localStorage, payload).ok) setToast("Could not save in this browser.");
   }, []);
+
+  // One debounced writer for both save triggers: React state changes (the
+  // effect below) and tldraw store edits (the listener in `onReady`). Without
+  // the debounce, typing in the project-name field would re-serialize the
+  // whole graph on every keystroke.
+  const scheduleSave = useCallback(
+    (ed: Editor) => {
+      if (saveTimer.current) window.clearTimeout(saveTimer.current);
+      saveTimer.current = window.setTimeout(() => persist(ed), 300);
+    },
+    [persist],
+  );
 
   const onReady = useCallback((ed: Editor) => {
     const saved = loadAppStory(window.localStorage);
@@ -137,18 +151,37 @@ export default function App() {
         expandedFlowIds: new Set(saved.expandedFlowIds),
       };
     }
-    let timer: number | undefined;
-    ed.store.listen(() => {
-      if (timer) window.clearTimeout(timer);
-      timer = window.setTimeout(() => persist(ed), 300);
-    });
+    const unsubscribe = ed.store.listen(() => scheduleSave(ed));
     setEditor(ed);
-  }, [persist]);
+    return () => {
+      unsubscribe();
+      if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    };
+  }, [scheduleSave]);
 
-  useEffect(() => setSupported(webmcpSupported()), [editor]);
+  // A browser extension can inject `document.modelContext` after this mounts,
+  // so a one-shot check would leave the chip stuck on "unavailable" while the
+  // tools are in fact live. Re-check on a short cadence until it appears.
   useEffect(() => {
-    if (editor) persist(editor);
-  }, [editor, projectName, repositoryIndex, repositorySource, consent, acceptedAnalysis, proposal, finalized, readRecords, analysisSessionId, gapReviews, expandedFlowIds, persist]);
+    if (webmcpSupported()) {
+      setSupported(true);
+      return;
+    }
+    const poll = window.setInterval(() => {
+      if (webmcpSupported()) {
+        setSupported(true);
+        window.clearInterval(poll);
+      }
+    }, 1000);
+    const stop = window.setTimeout(() => window.clearInterval(poll), 15000);
+    return () => {
+      window.clearInterval(poll);
+      window.clearTimeout(stop);
+    };
+  }, []);
+  useEffect(() => {
+    if (editor) scheduleSave(editor);
+  }, [editor, projectName, repositoryIndex, repositorySource, consent, acceptedAnalysis, proposal, finalized, readRecords, analysisSessionId, gapReviews, expandedFlowIds, scheduleSave]);
   useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(null), 2500);
@@ -285,7 +318,14 @@ export default function App() {
   const exportMarkdownReport = () => {
     const project = portableProject();
     if (!project) return;
-    downloadFile(buildMarkdownReport(project), "text/markdown;charset=utf-8", ".app-story.md");
+    let markdown: string;
+    try {
+      markdown = buildMarkdownReport(project);
+    } catch {
+      setToast("Could not build the Markdown report.");
+      return;
+    }
+    downloadFile(markdown, "text/markdown;charset=utf-8", ".app-story.md");
     setToast("Markdown report exported.");
   };
 
@@ -419,7 +459,7 @@ export default function App() {
     <div className="lsw-app">
       <header className="lsw-header">
         <div>
-          <div className="lsw-title">App Story</div>
+          <Logo as="a" href="/" className="lsw-title" markSize={24} />
           <input className="lsw-world-name" value={projectName} onChange={(event) => setProjectName(event.target.value)} aria-label="Project name" />
           <div className="lsw-sub">evidence-backed application flow</div>
         </div>
@@ -557,7 +597,7 @@ export default function App() {
                     <ul>{node.factors.map((factor, index) => <li key={`${factor.kind}:${index}`}>{factor.strength} {factor.kind}: {factor.detail}</li>)}</ul>
                     <ul>{node.evidence.map((item) => {
                       const url = evidenceUrl(item.path, item.startLine, item.endLine);
-                      return <li key={`${item.path}:${item.startLine}`}>{url ? <a href={url} target="_blank" rel="noreferrer">{item.path}:{item.startLine}-{item.endLine}</a> : `${item.path}:${item.startLine}-${item.endLine}`}</li>;
+                      return <li key={`${item.path}:${item.startLine}-${item.endLine}`}>{url ? <a href={url} target="_blank" rel="noreferrer">{item.path}:{item.startLine}-{item.endLine}</a> : `${item.path}:${item.startLine}-${item.endLine}`}</li>;
                     })}</ul>
                   </details>
                 </li>
@@ -578,7 +618,7 @@ export default function App() {
                     <ul>{edge.factors.map((factor, index) => <li key={`${factor.kind}:${index}`}>{factor.strength} {factor.kind}: {factor.detail}</li>)}</ul>
                     <ul>{edge.evidence.map((item) => {
                       const url = evidenceUrl(item.path, item.startLine, item.endLine);
-                      return <li key={`${item.path}:${item.startLine}`}>{url ? <a href={url} target="_blank" rel="noreferrer">{item.path}:{item.startLine}-{item.endLine}</a> : `${item.path}:${item.startLine}-${item.endLine}`}</li>;
+                      return <li key={`${item.path}:${item.startLine}-${item.endLine}`}>{url ? <a href={url} target="_blank" rel="noreferrer">{item.path}:{item.startLine}-{item.endLine}</a> : `${item.path}:${item.startLine}-${item.endLine}`}</li>;
                     })}</ul>
                   </details>
                 </li>

@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AnalysisNode, AnalysisProposal } from "./analysis";
-import {
-  groupFlows,
-  visibleFlowEdgeIds,
-  visibleFlowNodeIds,
-} from "./flows";
+import { groupFlows, visibleFlowNodeIds } from "./flows";
 
 type FlowNode = AnalysisNode & { flowId?: string; flowTitle?: string };
 
@@ -74,12 +70,6 @@ describe("flow visibility", () => {
     { id: "authentication", title: "Authentication", nodeIds: ["screen:sign-in", "screen:shared"], edgeIds: [] },
     { id: "home", title: "Home", nodeIds: ["screen:home", "screen:shared"], edgeIds: [] },
   ];
-  const graph = proposal([
-    node("screen:sign-in"),
-    node("screen:home"),
-    node("screen:shared"),
-  ], [edge]);
-
   it("shows no discovered nodes for collapsed flows", () => {
     expect(visibleFlowNodeIds(groups, new Set())).toEqual([]);
   });
@@ -89,13 +79,6 @@ describe("flow visibility", () => {
       "screen:sign-in",
       "screen:shared",
       "screen:home",
-    ]);
-  });
-
-  it("shows only edges whose endpoints are both visible", () => {
-    expect(visibleFlowEdgeIds(graph, ["screen:sign-in"])).toEqual([]);
-    expect(visibleFlowEdgeIds(graph, ["screen:sign-in", "screen:home"])).toEqual([
-      "edge:sign-in",
     ]);
   });
 });

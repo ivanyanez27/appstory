@@ -10,5 +10,5 @@ export const storyShapeUtils = [
   RegionShapeUtil,
 ];
 
-export { isStoryShapeType, STORY_SHAPE_TYPES } from "./types";
-export type { StoryShape, StoryShapeType } from "./types";
+export { isStoryShapeType } from "./types";
+export type { StoryShapeType } from "./types";

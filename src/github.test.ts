@@ -53,6 +53,20 @@ describe("getRepositoryFileEligibility", () => {
     ["src/secrets.local.json", "likely secret"],
     ["config/api_credentials.json", "likely secret"],
     ["top-secret-plan.md", "likely secret"],
+    // Secret directories, not just secret filenames.
+    ["secrets/prod.json", "likely secret"],
+    ["config/credentials/aws.yml", "likely secret"],
+    [".secrets/db.yml", "likely secret"],
+    // Credential-family filenames the enumerated list now covers.
+    ["deploy/.netrc", "likely secret"],
+    ["home/.pgpass", "likely secret"],
+    [".ssh/id_ecdsa", "likely secret"],
+    ["gpg/secring.gpg", "likely secret"],
+    ["infra/terraform.tfstate", "likely secret"],
+    // Environment files by exact name and by trailing-whitespace variant.
+    [".envrc", "environment file"],
+    ["service/.flaskenv", "environment file"],
+    ["app/.env ", "environment file"],
   ])("excludes %s as %s", (path, reason) => {
     expect(getRepositoryFileEligibility({ path, size: 100 })).toEqual({
       eligible: false,
@@ -67,10 +81,17 @@ describe("getRepositoryFileEligibility", () => {
     expect(
       getRepositoryFileEligibility({ path: ".gitignore", size: 100 }),
     ).toEqual({ eligible: true });
-    // "secret(s)"/"credential(s)" must be a bounded filename segment, not a
-    // substring match, or ordinary words get swept up with it.
+    // "secret(s)"/"credential(s)" must be a bounded segment, not a substring
+    // match, or ordinary words get swept up with it.
     expect(
       getRepositoryFileEligibility({ path: "src/secretary.ts", size: 100 }),
+    ).toEqual({ eligible: true });
+    // An `env/` directory or an `environment` file is not an environment file.
+    expect(
+      getRepositoryFileEligibility({ path: "env/config.ts", size: 100 }),
+    ).toEqual({ eligible: true });
+    expect(
+      getRepositoryFileEligibility({ path: "src/environment.ts", size: 100 }),
     ).toEqual({ eligible: true });
   });
 
