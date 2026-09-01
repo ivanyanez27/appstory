@@ -335,6 +335,7 @@ body {
 .app-story-source input[type="url"]::placeholder { color: var(--text-faint); }
 .app-story-source button,
 .app-story-review button,
+.app-story-draft button,
 .app-story-outline button,
 .app-story-gap-review button,
 .lsw-danger-btn {
@@ -397,12 +398,28 @@ body {
   background: rgb(248 113 127 / 0.12);
   border-color: var(--danger);
 }
+.app-story-draft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: rgb(99 102 241 / 0.1);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.app-story-draft button { margin-left: auto; }
 .app-story-review {
   background: rgb(16 185 129 / 0.1);
   border-color: rgb(16 185 129 / 0.4);
   color: var(--text);
 }
 .app-story-review > details { flex: 1; max-height: 12rem; overflow: auto; }
+.app-story-revision-summary { margin: 0.35rem 0; }
+.app-story-revision-added { color: var(--green); font-weight: 600; }
+.app-story-revision-changed { color: var(--amber); font-weight: 600; }
+.app-story-revision-possibly_removed,
+.app-story-revision-possibly_removed li { color: var(--danger); font-weight: 600; }
 .app-story-review-actions { display: flex; gap: 0.5rem; margin-left: auto; }
 .app-story-review-actions button:first-child {
   background: var(--green);
@@ -482,8 +499,9 @@ body {
     backdrop-filter: none;
   }
   .app-story-source button,
-  .app-story-review button,
-  .app-story-outline button,
+.app-story-review button,
+.app-story-draft button,
+.app-story-outline button,
   .app-story-gap-review button,
   .lsw-danger-btn {
     transition: none;

@@ -18,6 +18,7 @@ import { MAX_PROJECT_FILE_BYTES, parseProjectFile, serializeProjectFile, type Ap
 import { connectPublicGitHub, readRepositoryLines, type SourceResult } from "./repository";
 import { StatusChip, CardCount } from "./status";
 import { AgentToast } from "./toast";
+import { compareAnalysisRevisions } from "./revisionComparison";
 import { webmcpSupported } from "./webmcpSupport";
 import "./styles.css";
 
@@ -248,13 +249,20 @@ export default function App() {
 
   const acceptProposal = () => {
     if (!editor || !finalized) return;
+    const comparison = compareAnalysisRevisions(acceptedAnalysis, proposal);
+    const removedIds = new Set(
+      comparison.filter((item) => item.status === "possibly_removed").map((item) => item.itemId),
+    );
+    const keptGapReviews = Object.fromEntries(
+      Object.entries(gapReviews).filter(([nodeId]) => !removedIds.has(nodeId)),
+    );
     applyWorld(editor, proposalToWorld(proposal, projectName, undefined, new Set()));
     setAcceptedAnalysis(proposal);
     setProposal(EMPTY);
     setFinalized(false);
     setAnalysisSessionId(null);
     setTechnicalRootId(null);
-    setGapReviews({});
+    setGapReviews(keptGapReviews);
     setExpandedFlowIds(new Set());
     window.setTimeout(() => editor.zoomToFit({ animation: { duration: 300 } }), 0);
     setToast("Analysis proposal accepted.");
@@ -431,6 +439,21 @@ export default function App() {
     }
   };
   const flows = groupFlows(acceptedAnalysis);
+  const revisionComparison = finalized && acceptedAnalysis.nodes.length > 0
+    ? compareAnalysisRevisions(acceptedAnalysis, proposal)
+    : [];
+  const revisionSummary = revisionComparison.reduce(
+    (counts, item) => {
+      if (item.status === "added") counts.added += 1;
+      else if (item.status === "changed") counts.changed += 1;
+      else if (item.status === "possibly_removed") counts.possiblyRemoved += 1;
+      return counts;
+    },
+    { added: 0, changed: 0, possiblyRemoved: 0 },
+  );
+  const draftInProgress = Boolean(
+    repositoryIndex && consent && !finalized && (proposal.nodes.length > 0 || proposal.edges.length > 0),
+  );
 
   return (
     <div className="lsw-app">
@@ -488,19 +511,48 @@ export default function App() {
         )}
       </section>
 
+      {draftInProgress && (
+        <section className="app-story-draft" aria-label="Analysis in progress" aria-live="polite">
+          <strong>Analysis in progress:</strong> {proposal.nodes.length} node{proposal.nodes.length === 1 ? "" : "s"} and {proposal.edges.length} connection{proposal.edges.length === 1 ? "" : "s"} in draft
+          <button type="button" onClick={() => { setProposal(EMPTY); setAnalysisSessionId(null); }}>Discard draft</button>
+        </section>
+      )}
+
       {finalized && (
         <section className="app-story-review" aria-label="Analysis proposal review">
           <details open>
             <summary><strong>Proposal ready:</strong> {proposal.nodes.length} nodes and {proposal.edges.length} connections</summary>
+            {revisionComparison.length > 0 && (
+              <p className="app-story-revision-summary">
+                Compared to the accepted analysis: {revisionSummary.added} added, {revisionSummary.changed} changed, {revisionSummary.possiblyRemoved} possibly removed
+              </p>
+            )}
             <ul>
-              {proposal.nodes.map((node) => (
+              {proposal.nodes.map((node) => {
+                const change = revisionComparison.find((item) => item.itemType === "node" && item.itemId === node.id)?.status;
+                return (
                 <li key={node.id}>
-                  <strong>{node.title}</strong> · {node.kind.replaceAll("_", " ")} · {node.confidence.label} {node.confidence.score}%
+                  <strong>{node.title}</strong>
+                  {change && change !== "unchanged" && <span className={`app-story-revision-${change}`}> · {change.replaceAll("_", " ")}</span>}
+                  {" · "}{node.kind.replaceAll("_", " ")} · {node.confidence.label} {node.confidence.score}%
                   <div>{node.factors.map((factor) => `${factor.strength} ${factor.kind}: ${factor.detail}`).join("; ")}</div>
                   <div>{node.evidence.map((item) => `${item.path}:${item.startLine}-${item.endLine}`).join(", ")}</div>
                 </li>
+              );})}
+              {proposal.edges.map((edge) => {
+                const change = revisionComparison.find((item) => item.itemType === "edge" && item.itemId === edge.id)?.status;
+                return (
+                <li key={edge.id}>
+                  <strong>{edge.label}</strong>
+                  {change && change !== "unchanged" && <span className={`app-story-revision-${change}`}> · {change.replaceAll("_", " ")}</span>}
+                  {" · "}{edge.fromId} → {edge.toId} · {edge.confidence.label} {edge.confidence.score}%
+                </li>
+              );})}
+              {revisionComparison.filter((item) => item.status === "possibly_removed").map((item) => (
+                <li key={`${item.itemType}:${item.itemId}`} className="app-story-revision-possibly_removed">
+                  <strong>{item.itemId}</strong> · possibly removed {item.itemType}
+                </li>
               ))}
-              {proposal.edges.map((edge) => <li key={edge.id}><strong>{edge.label}</strong> · {edge.fromId} → {edge.toId} · {edge.confidence.label} {edge.confidence.score}%</li>)}
             </ul>
           </details>
           <div className="app-story-review-actions">
@@ -514,7 +566,7 @@ export default function App() {
         <Canvas onReady={onReady} />
         {acceptedAnalysis.nodes.length === 0 && (
           <div className="lsw-empty">
-            {repositoryIndex ? (consent ? "Repository ready. Ask your WebMCP agent to map the main UI flow." : "Review the repository scope and grant source access.") : "Connect a public GitHub repository to map its application story."}
+            {repositoryIndex ? (draftInProgress ? "Your WebMCP agent is building an analysis proposal. Read Records appear in the outline." : consent ? "Repository ready. Ask your WebMCP agent to map the main UI flow." : "Review the repository scope and grant source access.") : "Connect a public GitHub repository to map its application story."}
           </div>
         )}
         <aside className="app-story-outline" aria-label="Flow outline">
