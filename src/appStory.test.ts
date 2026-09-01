@@ -44,12 +44,14 @@ describe("App Story integration", () => {
         { id: "screen:sign-in", kind: "screen", title: "Sign in", applicationArea: "web", evidence, factors, confidence },
         { id: "decision:valid", kind: "decision", title: "Details valid?", applicationArea: "web", evidence, factors, confidence },
         { id: "outcome:dashboard", kind: "outcome", title: "Dashboard", applicationArea: "web", evidence, factors, confidence },
+        { id: "outcome:error", kind: "outcome", title: "Show validation error", applicationArea: "web", evidence, factors, confidence },
         { id: "gap:reset", kind: "possible_gap", title: "Forgot password", applicationArea: "web", evidence, factors, confidence },
       ],
       edges: [
         { id: "edge:open", kind: "screen_transition", fromId: "actor:user", toId: "screen:sign-in", label: "Open", evidence, factors, confidence },
         { id: "edge:submit", kind: "user_action", fromId: "screen:sign-in", toId: "decision:valid", label: "Submit", evidence, factors, confidence },
         { id: "edge:success", kind: "validation_result", fromId: "decision:valid", toId: "outcome:dashboard", label: "Success", evidence, factors, confidence },
+        { id: "edge:failure", kind: "validation_result", fromId: "decision:valid", toId: "outcome:error", label: "Failure", evidence, factors, confidence },
         { id: "edge:missing", kind: "dependency", fromId: "screen:sign-in", toId: "gap:reset", label: "Missing path", evidence, factors, confidence },
       ],
     };
@@ -59,11 +61,14 @@ describe("App Story integration", () => {
     const signIn = byId.get("screen:sign-in")!;
     const validation = byId.get("decision:valid")!;
     const dashboard = byId.get("outcome:dashboard")!;
+    const error = byId.get("outcome:error")!;
     const resetGap = byId.get("gap:reset")!;
 
     expect(user.y).toBeLessThan(signIn.y);
     expect(signIn.y).toBeLessThan(validation.y);
     expect(validation.y).toBeLessThan(dashboard.y);
+    expect(error.y).toBe(dashboard.y);
+    expect(error.x).not.toBe(dashboard.x);
     expect(resetGap.y + resetGap.h / 2).toBe(signIn.y + signIn.h / 2);
     expect(resetGap.x).not.toBe(signIn.x);
   });
