@@ -9,6 +9,7 @@ import { HowToPlay } from "./help";
 import { buildGitHubEvidenceUrl, type RepositoryIndex } from "./github";
 import { applyGapReview, type GapImpact, type GapReview, type GapReviewMap, type GapReviewStatus } from "./gapReview";
 import { Legend } from "./legend";
+import { ReadRecordList, SourceReadsButton } from "./readRecords";
 import { Logo } from "./Logo";
 import { groupFlows } from "./flows";
 import { connectLocalRepository, type LocalDirectoryHandle, type LocalRepositoryConnection } from "./localRepository";
@@ -79,6 +80,8 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null);
   const [supported, setSupported] = useState(false);
   const [exportingImage, setExportingImage] = useState<"svg" | "png" | null>(null);
+  const [readsOpen, setReadsOpen] = useState(false);
+  const [outlineOpen, setOutlineOpen] = useState(true);
   const importInputRef = useRef<HTMLInputElement>(null);
   const saveTimer = useRef<number | undefined>(undefined);
   const stateRef = useRef({ projectName, repositoryIndex, repositorySource, consent, acceptedAnalysis, proposal, finalized, readRecords, analysisSessionId, gapReviews, expandedFlowIds });
@@ -126,7 +129,7 @@ export default function App() {
       // The stored snapshot holds the geometry the layout produced when the
       // project was last touched. Re-project it from the accepted analysis so
       // an older project picks up the current layout instead of keeping a
-      // stale one. The camera is untouched, so only the cards move.
+      // stale one, and fit the result to the viewport below.
       if (saved.acceptedAnalysis.nodes.length > 0) {
         applyWorld(
           ed,
@@ -137,6 +140,10 @@ export default function App() {
             new Set(saved.expandedFlowIds),
           ),
         );
+        // Fit the whole accepted graph on load. Without this the canvas opens
+        // on whatever fragment the stored camera pointed at, which reads as an
+        // almost empty canvas.
+        window.setTimeout(() => ed.zoomToFit(), 0);
       }
       setProjectName(saved.projectName);
       setRepositoryIndex(saved.repositoryIndex);
@@ -474,13 +481,21 @@ export default function App() {
     <div className="lsw-app">
       <header className="lsw-header">
         <div>
-          <Logo as="a" href="/" className="lsw-title" markSize={24} />
+          <Logo className="lsw-title" markSize={24} />
           <input className="lsw-world-name" value={projectName} onChange={(event) => setProjectName(event.target.value)} aria-label="Project name" />
           <div className="lsw-sub">evidence-backed application flow</div>
         </div>
         <div className="lsw-header-right">
           <StatusChip supported={supported} toolCount={APP_STORY_TOOLS.length} />
           <CardCount cardCount={acceptedAnalysis.nodes.length} />
+          <button
+            type="button"
+            disabled={!editor || acceptedAnalysis.nodes.length === 0}
+            onClick={() => editor?.zoomToFit({ animation: { duration: 300 } })}
+          >
+            Fit to view
+          </button>
+          <SourceReadsButton records={readRecords} open={readsOpen} onToggle={() => setReadsOpen((v) => !v)} />
           <HowToPlay />
           <button type="button" disabled={!repositoryIndex} onClick={exportProject}>Export</button>
           <button type="button" disabled={!repositoryIndex} onClick={exportMarkdownReport}>Report</button>
@@ -581,12 +596,17 @@ export default function App() {
         <Canvas onReady={onReady} />
         {acceptedAnalysis.nodes.length === 0 && (
           <div className="lsw-empty">
-            {repositoryIndex ? (draftInProgress ? "Your WebMCP agent is building an analysis proposal. Read Records appear in the outline." : consent ? "Repository ready. Ask your WebMCP agent to map the main UI flow." : "Review the repository scope and grant source access.") : "Connect a public GitHub repository to map its application story."}
+            {repositoryIndex ? (draftInProgress ? "Your WebMCP agent is building an analysis proposal. Select Source reads in the header to see what it has read." : consent ? "Repository ready. Ask your WebMCP agent to map the main UI flow." : "Review the repository scope and grant source access.") : "Connect a public GitHub repository to map its application story."}
           </div>
         )}
-        <aside className="app-story-outline" aria-label="Flow outline">
-          <h2>Flow outline</h2>
-          {acceptedAnalysis.nodes.length === 0 ? <p>No accepted analysis.</p> : (
+        <aside className={outlineOpen ? "app-story-outline" : "app-story-outline app-story-outline-closed"} aria-label="Flow outline">
+          <div className="app-story-outline-head">
+            <h2>Flow outline</h2>
+            <button type="button" aria-expanded={outlineOpen} onClick={() => setOutlineOpen((v) => !v)}>
+              {outlineOpen ? "Hide" : "Show"}
+            </button>
+          </div>
+          {!outlineOpen ? null : acceptedAnalysis.nodes.length === 0 ? <p>No accepted analysis.</p> : (
             <>
             <ul className="app-story-flow-list">
               {flows.map((flow) => (
@@ -620,8 +640,8 @@ export default function App() {
             </ul>
             </>
           )}
-          {technicalRootId && <button type="button" onClick={() => showTechnicalFlow(null)}>Collapse technical flow</button>}
-          {acceptedAnalysis.edges.length > 0 && (
+          {outlineOpen && technicalRootId && <button type="button" onClick={() => showTechnicalFlow(null)}>Collapse technical flow</button>}
+          {outlineOpen && acceptedAnalysis.edges.length > 0 && (
             <details>
               <summary>{acceptedAnalysis.edges.length} connection{acceptedAnalysis.edges.length === 1 ? "" : "s"}</summary>
               <ul>{acceptedAnalysis.edges.map((edge) => (
@@ -640,10 +660,10 @@ export default function App() {
               ))}</ul>
             </details>
           )}
-          {readRecords.length > 0 && (
+          {outlineOpen && readRecords.length > 0 && (
             <details>
               <summary>{readRecords.length} source read{readRecords.length === 1 ? "" : "s"}</summary>
-              <ul>{readRecords.map((record) => <li key={record.id}>{record.path} — {record.reason}</li>)}</ul>
+              <ReadRecordList records={readRecords} />
             </details>
           )}
         </aside>

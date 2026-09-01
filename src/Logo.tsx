@@ -44,33 +44,19 @@ export function LogoMark({ size = 28 }: { size?: number }) {
 }
 
 export function Logo({
-  as = "span",
-  href,
   markSize = 26,
   className,
-  onClick,
 }: {
-  as?: "span" | "a";
-  href?: string;
   markSize?: number;
   className?: string;
-  onClick?: (event: React.MouseEvent) => void;
 }) {
-  const inner = (
-    <>
+  const classes = className ? `brand-wordmark ${className}` : "brand-wordmark";
+  return (
+    <span className={classes}>
       <LogoMark size={markSize} />
       <span>
         App <span className="brand-wordmark-story">Story</span>
       </span>
-    </>
+    </span>
   );
-  const classes = className ? `brand-wordmark ${className}` : "brand-wordmark";
-  if (as === "a") {
-    return (
-      <a className={classes} href={href} onClick={onClick}>
-        {inner}
-      </a>
-    );
-  }
-  return <span className={classes}>{inner}</span>;
 }

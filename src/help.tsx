@@ -57,11 +57,24 @@ export function HowToPlay() {
               flow</em> for system steps.
             </li>
             <li>
+              <strong>Check what was read.</strong> <em>Source reads</em> in the
+              header lists every source range the agent read, with its path,
+              line range, size, reason, and time.
+            </li>
+            <li>
               <strong>Export or save.</strong> <em>Export</em> writes a Project
               File you can re-import. <em>Report</em>, <em>SVG</em>, and{" "}
               <em>PNG</em> share the review without repository source.
             </li>
           </ol>
+
+          <p className="lsw-help-label">About the canvas</p>
+          <p>
+            The canvas is read-only. It holds accepted, evidence-backed facts
+            only, so there are no drawing tools to add marks an export could not
+            tell apart from analysis. Pan and zoom freely, and select{" "}
+            <em>Fit to view</em> to bring the whole graph back on screen.
+          </p>
 
           <p className="lsw-help-label">Example agent prompt</p>
           <p className="lsw-help-example">{EXAMPLE_PROMPT}</p>

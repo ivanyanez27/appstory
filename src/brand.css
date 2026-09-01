@@ -1,6 +1,6 @@
 /* App Story brand system — "Deep Ink Canvas" (Brand Guidelines v1.0).
-   Single source of the design tokens. Imported once from main.tsx so both the
-   landing page (landing.css) and the canvas app (styles.css) share it.
+   Single source of the design tokens. Imported once from main.tsx, next to the
+   canvas application styles (styles.css).
 
    The brand is dark-only by design: the palette below is the whole system.
    Instrument Sans carries structural type; JetBrains Mono carries commit

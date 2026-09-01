@@ -23,7 +23,20 @@ export function worldIdFromShapeId(id: string): string {
   return id.startsWith("shape:") ? id.slice("shape:".length) : id;
 }
 
+// The canvas is locked for people (see `canvas.tsx`), so tldraw's readonly
+// guards would drop these writes. Lift the lock for the duration of the
+// projection and put it back afterwards.
 export function applyWorld(editor: Editor, next: World): void {
+  const locked = editor.getIsReadonly();
+  if (locked) editor.updateInstanceState({ isReadonly: false });
+  try {
+    projectWorld(editor, next);
+  } finally {
+    if (locked) editor.updateInstanceState({ isReadonly: true });
+  }
+}
+
+function projectWorld(editor: Editor, next: World): void {
   editor.run(() => {
     editor.markHistoryStoppingPoint("agent-world");
     const wantedCards = new Set(next.cards.map((c) => shapeIdFor(c.id)));
