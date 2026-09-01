@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { exportAs, getSnapshot, loadSnapshot, type Editor } from "tldraw";
+import { exportAs, type Editor } from "tldraw";
 import { emptyAnalysisProposal, type AnalysisProposal } from "./analysis";
 import { proposalToWorld } from "./appStory";
 import { AppStoryTools, APP_STORY_TOOLS, type ReadRecord } from "./AppStoryTools";
@@ -87,11 +87,15 @@ export default function App() {
   const stateRef = useRef({ projectName, repositoryIndex, repositorySource, consent, acceptedAnalysis, proposal, finalized, readRecords, analysisSessionId, gapReviews, expandedFlowIds });
   stateRef.current = { projectName, repositoryIndex, repositorySource, consent, acceptedAnalysis, proposal, finalized, readRecords, analysisSessionId, gapReviews, expandedFlowIds };
 
-  const persist = useCallback((ed: Editor, state = stateRef.current) => {
+  // The canvas holds nothing a reader can change — it is a pure projection of
+  // the analysis below (see `world.ts`) — so there is nothing on it worth
+  // saving. Persisting a tldraw snapshot would only let a stale layout survive
+  // a code change, which is the bug `onReady` used to work around. Save the
+  // domain data only; `onReady` rebuilds the canvas from it on every load.
+  const persist = useCallback((state = stateRef.current) => {
     const payload: AppStoryPersistPayload = {
       v: 1,
       projectName: state.projectName,
-      snapshot: getSnapshot(ed.store),
       repositoryIndex: state.repositoryIndex,
       consent: state.consent,
       acceptedAnalysis: state.acceptedAnalysis,
@@ -106,30 +110,18 @@ export default function App() {
     if (!saveAppStory(window.localStorage, payload).ok) setToast("Could not save in this browser.");
   }, []);
 
-  // One debounced writer for both save triggers: React state changes (the
-  // effect below) and tldraw store edits (the listener in `onReady`). Without
-  // the debounce, typing in the project-name field would re-serialize the
-  // whole graph on every keystroke.
-  const scheduleSave = useCallback(
-    (ed: Editor) => {
-      if (saveTimer.current) window.clearTimeout(saveTimer.current);
-      saveTimer.current = window.setTimeout(() => persist(ed), 300);
-    },
-    [persist],
-  );
+  // Debounced so typing in the project-name field does not write on every
+  // keystroke.
+  const scheduleSave = useCallback(() => {
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => persist(), 300);
+  }, [persist]);
 
   const onReady = useCallback((ed: Editor) => {
     const saved = loadAppStory(window.localStorage);
     if (saved) {
-      try {
-        loadSnapshot(ed.store, saved.snapshot as Parameters<typeof loadSnapshot>[1]);
-      } catch {
-        // Keep an empty canvas when a stored tldraw snapshot is invalid.
-      }
-      // The stored snapshot holds the geometry the layout produced when the
-      // project was last touched. Re-project it from the accepted analysis so
-      // an older project picks up the current layout instead of keeping a
-      // stale one, and fit the result to the viewport below.
+      // Nothing on the canvas is saved — see `persist` above — so it is built
+      // fresh from the accepted analysis every time the app opens.
       if (saved.acceptedAnalysis.nodes.length > 0) {
         applyWorld(
           ed,
@@ -140,9 +132,8 @@ export default function App() {
             new Set(saved.expandedFlowIds),
           ),
         );
-        // Fit the whole accepted graph on load. Without this the canvas opens
-        // on whatever fragment the stored camera pointed at, which reads as an
-        // almost empty canvas.
+        // Fit the whole accepted graph on load; there is no saved camera to
+        // restore it to instead.
         window.setTimeout(() => ed.zoomToFit(), 0);
       }
       setProjectName(saved.projectName);
@@ -173,13 +164,11 @@ export default function App() {
         expandedFlowIds: new Set(saved.expandedFlowIds),
       };
     }
-    const unsubscribe = ed.store.listen(() => scheduleSave(ed));
     setEditor(ed);
     return () => {
-      unsubscribe();
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
     };
-  }, [scheduleSave]);
+  }, []);
 
   // A browser extension can inject `document.modelContext` after this mounts,
   // so a one-shot check would leave the chip stuck on "unavailable" while the
@@ -202,7 +191,7 @@ export default function App() {
     };
   }, []);
   useEffect(() => {
-    if (editor) scheduleSave(editor);
+    if (editor) scheduleSave();
   }, [editor, projectName, repositoryIndex, repositorySource, consent, acceptedAnalysis, proposal, finalized, readRecords, analysisSessionId, gapReviews, expandedFlowIds, scheduleSave]);
   useEffect(() => {
     if (!toast) return;

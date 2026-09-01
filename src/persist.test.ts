@@ -35,7 +35,6 @@ function memoryStorage(initial: Record<string, string> = {}) {
 const APP_STORY_PAYLOAD: AppStoryPersistPayload = {
   v: 1,
   projectName: "acme/app",
-  snapshot: {},
   repositoryIndex: null,
   consent: false,
   acceptedAnalysis: { nodes: [], edges: [] },
@@ -74,7 +73,6 @@ describe("App Story persistence", () => {
     const payload = {
       v: 1 as const,
       projectName: "local-app",
-      snapshot: {},
       repositoryIndex: { revision: { owner: "local", repo: "private", commitSha: "a".repeat(40) }, files: [], truncated: false },
       consent: true,
       acceptedAnalysis: { nodes: [], edges: [] },
@@ -91,6 +89,19 @@ describe("App Story persistence", () => {
 
     expect(data[APP_STORY_STORAGE_KEY]).not.toContain("secret/path.ts");
     expect(loadAppStory(store)).toMatchObject({ repositoryIndex: null, consent: false, readRecords: [] });
+  });
+
+  it("never persists canvas geometry, and drops a leftover snapshot on load", () => {
+    const { store, data } = memoryStorage();
+    saveAppStory(store, APP_STORY_PAYLOAD);
+    expect(data[APP_STORY_STORAGE_KEY]).not.toContain("snapshot");
+
+    // A payload saved before the canvas stopped persisting its own geometry
+    // can still be sitting in a returning user's browser.
+    const { store: legacyStore } = memoryStorage({
+      [APP_STORY_STORAGE_KEY]: JSON.stringify({ ...APP_STORY_PAYLOAD, snapshot: { shape: { x: 1 } } }),
+    });
+    expect(loadAppStory(legacyStore)).toEqual(APP_STORY_PAYLOAD);
   });
 
   it("uses a separate key and deletes only App Story data", () => {

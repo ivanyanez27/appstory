@@ -7,7 +7,6 @@ export const APP_STORY_STORAGE_KEY = "app-story.v1";
 export type AppStoryPersistPayload = {
   v: 1;
   projectName: string;
-  snapshot: unknown;
   repositoryIndex: RepositoryIndex | null;
   consent: boolean;
   acceptedAnalysis: AnalysisProposal;
@@ -60,7 +59,24 @@ export function loadAppStory(storage: Storage): AppStoryPersistPayload | null {
     ) {
       return null;
     }
-    return withoutLocalRepositoryData(parsed as AppStoryPersistPayload);
+    // Named field-by-field, not a spread of `parsed`, so a `snapshot` left
+    // over from before the canvas stopped persisting its own geometry can
+    // never resurface through this loader.
+    const clean: AppStoryPersistPayload = {
+      v: 1,
+      projectName: parsed.projectName,
+      repositoryIndex: parsed.repositoryIndex ?? null,
+      consent: parsed.consent,
+      acceptedAnalysis: parsed.acceptedAnalysis,
+      proposal: parsed.proposal,
+      finalized: parsed.finalized,
+      readRecords: parsed.readRecords,
+      analysisSessionId: parsed.analysisSessionId,
+      gapReviews: parsed.gapReviews,
+      expandedFlowIds: parsed.expandedFlowIds,
+      repositorySource: parsed.repositorySource ?? null,
+    };
+    return withoutLocalRepositoryData(clean);
   } catch {
     return null;
   }
