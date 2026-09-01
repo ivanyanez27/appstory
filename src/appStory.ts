@@ -3,6 +3,8 @@ import {
   EVIDENCE_FACTOR_KINDS,
   EVIDENCE_SOURCES,
   NODE_KINDS,
+  type AnalysisEdge,
+  type AnalysisNode,
   type AnalysisProposal,
   type ProposalBatch,
 } from "./analysis";
@@ -140,6 +142,135 @@ const TYPE_BY_NODE: Record<(typeof NODE_KINDS)[number], CardType> = {
   unknown_path: "note",
 };
 
+const CARD_W = 260;
+const CARD_H = 150;
+const NOTE_W = 240;
+const NOTE_H = 120;
+const FLOW_PADDING = 60;
+const COLUMN_PITCH = 360;
+const ROW_PITCH = 250;
+
+type FlowLayout = {
+  positions: ReadonlyMap<string, { x: number; y: number }>;
+  w: number;
+  h: number;
+};
+
+function isGap(node: AnalysisNode): boolean {
+  return node.kind === "possible_gap" || node.kind === "unknown_path";
+}
+
+function cardSize(node: AnalysisNode): { w: number; h: number } {
+  return isGap(node) ? { w: NOTE_W, h: NOTE_H } : { w: CARD_W, h: CARD_H };
+}
+
+function flowLayout(nodes: readonly AnalysisNode[], edges: readonly AnalysisEdge[]): FlowLayout {
+  if (!nodes.length) return { positions: new Map(), w: 340, h: 120 };
+
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const mainNodes = nodes.filter((node) => !isGap(node));
+  const mainNodeIds = new Set(mainNodes.map((node) => node.id));
+  const outgoing = new Map(mainNodes.map((node) => [node.id, [] as string[]]));
+  const indegree = new Map(mainNodes.map((node) => [node.id, 0]));
+
+  for (const edge of edges) {
+    if (!outgoing.has(edge.fromId) || !indegree.has(edge.toId)) continue;
+    outgoing.get(edge.fromId)!.push(edge.toId);
+    indegree.set(edge.toId, indegree.get(edge.toId)! + 1);
+  }
+
+  const rank = new Map<string, number>();
+  const queue = mainNodes.filter((node) => indegree.get(node.id) === 0).map((node) => node.id);
+  for (const id of queue) rank.set(id, 0);
+  for (let index = 0; index < queue.length; index += 1) {
+    const id = queue[index];
+    const nextRank = (rank.get(id) ?? 0) + 1;
+    for (const nextId of outgoing.get(id) ?? []) {
+      rank.set(nextId, Math.max(rank.get(nextId) ?? 0, nextRank));
+      const remaining = indegree.get(nextId)! - 1;
+      indegree.set(nextId, remaining);
+      if (remaining === 0) queue.push(nextId);
+    }
+  }
+
+  // A cycle is not a user journey, but it must still render. Keep its cards
+  // below the known path instead of failing to lay out the whole flow.
+  let fallbackRank = Math.max(0, ...rank.values()) + 1;
+  for (const node of mainNodes) {
+    if (!rank.has(node.id)) rank.set(node.id, fallbackRank++);
+  }
+
+  const nodesByRank = new Map<number, AnalysisNode[]>();
+  for (const node of mainNodes) {
+    const level = rank.get(node.id) ?? 0;
+    const row = nodesByRank.get(level) ?? [];
+    row.push(node);
+    nodesByRank.set(level, row);
+  }
+
+  const gapsByAnchor = new Map<string, AnalysisNode[]>();
+  const unanchoredGaps: AnalysisNode[] = [];
+  for (const gap of nodes.filter(isGap)) {
+    const anchorId = edges.find((edge) => edge.fromId === gap.id && mainNodeIds.has(edge.toId))?.toId
+      ?? edges.find((edge) => edge.toId === gap.id && mainNodeIds.has(edge.fromId))?.fromId;
+    if (!anchorId) {
+      unanchoredGaps.push(gap);
+      continue;
+    }
+    const attached = gapsByAnchor.get(anchorId) ?? [];
+    attached.push(gap);
+    gapsByAnchor.set(anchorId, attached);
+  }
+
+  for (const [level, row] of nodesByRank) {
+    const withGaps: AnalysisNode[] = [];
+    for (const node of row) {
+      if (withGaps.length % 2) withGaps.push(...(gapsByAnchor.get(node.id) ?? []));
+      withGaps.push(node);
+      if (withGaps.length % 2 === 1) withGaps.push(...(gapsByAnchor.get(node.id) ?? []));
+    }
+    nodesByRank.set(level, withGaps);
+  }
+  if (unanchoredGaps.length) {
+    const level = Math.max(0, ...nodesByRank.keys()) + 1;
+    nodesByRank.set(level, unanchoredGaps);
+  }
+
+  const rawPositions = new Map<string, { x: number; y: number }>();
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const [level, row] of nodesByRank) {
+    // ponytail: fixed rank ordering; add crossing reduction only if large flows make connections hard to follow.
+    for (const [index, node] of row.entries()) {
+      const { w, h } = cardSize(node);
+      const x = (index - (row.length - 1) / 2) * COLUMN_PITCH;
+      const y = level * ROW_PITCH;
+      rawPositions.set(node.id, { x, y });
+      minX = Math.min(minX, x - w / 2);
+      maxX = Math.max(maxX, x + w / 2);
+      minY = Math.min(minY, y - h / 2);
+      maxY = Math.max(maxY, y + h / 2);
+    }
+  }
+
+  const positions = new Map<string, { x: number; y: number }>();
+  for (const [id, position] of rawPositions) {
+    const node = nodeById.get(id)!;
+    const { w, h } = cardSize(node);
+    positions.set(id, {
+      x: position.x - w / 2 - minX + FLOW_PADDING,
+      y: position.y - h / 2 - minY + FLOW_PADDING,
+    });
+  }
+  return {
+    positions,
+    w: Math.max(340, maxX - minX + FLOW_PADDING * 2),
+    h: Math.max(240, maxY - minY + FLOW_PADDING * 2),
+  };
+}
+
 export function proposalToWorld(
   proposal: AnalysisProposal,
   name: string,
@@ -167,65 +298,76 @@ export function proposalToWorld(
       }
     }
   }
-  // Canvas layout. The column pitch leaves room between cards for an arrow
-  // label: tldraw wraps a label to the arrow's length, and at the previous
-  // 40px gap "connect()" broke across three lines.
-  const CARD_W = 260;
-  const NOTE_W = 240;
-  const COLUMNS = 3;
-  const COLUMN_PITCH = 380;
-  const ROW_PITCH = 240;
-  const FLOW_PADDING = 40;
-  const FLOW_W = (COLUMNS - 1) * COLUMN_PITCH + CARD_W + FLOW_PADDING * 2;
-  const FLOW_PITCH = FLOW_W + 120;
-
   const visibleNodes = proposal.nodes.filter(
     (node) => flowVisibleIds.has(node.id) && (!technicalKinds.has(node.kind) || technicalIds.has(node.id)),
   );
   const visibleIds = new Set(visibleNodes.map((node) => node.id));
-
-  // Group the visible nodes by flow once. Both loops below need per-flow
-  // ordering; recomputing it per node made this O(V²) on every canvas render.
-  const flowIndexById = new Map(flows.map((flow, index) => [flow.id, index]));
   const nodesByFlow = new Map<string, typeof visibleNodes>();
-  const localIndexById = new Map<string, number>();
   for (const node of visibleNodes) {
     const flowId = node.flowId?.trim() || "main";
     const list = nodesByFlow.get(flowId) ?? [];
-    localIndexById.set(node.id, list.length);
     list.push(node);
     nodesByFlow.set(flowId, list);
   }
 
-  const cards: World["cards"] = flows.map((flow, flowIndex) => ({
-    id: `flow:${flow.id}`,
-    type: "region",
-    name: expanded.has(flow.id) ? flow.title : `${flow.title} · collapsed`,
-    summary: "UI Flow",
-    imageUrl: null,
-    x: flowIndex * FLOW_PITCH - FLOW_PADDING,
-    y: -FLOW_PADDING,
-    w: expanded.has(flow.id) ? FLOW_W : 340,
-    h: expanded.has(flow.id)
-      ? Math.max(420, Math.ceil((nodesByFlow.get(flow.id)?.length ?? 0) / COLUMNS) * ROW_PITCH + 100)
-      : 120,
+  const layouts = new Map(flows.map((flow) => {
+    const nodes = nodesByFlow.get(flow.id) ?? [];
+    const nodeIds = new Set(nodes.map((node) => node.id));
+    const edges = proposal.edges.filter((edge) => nodeIds.has(edge.fromId) && nodeIds.has(edge.toId));
+    return [flow.id, flowLayout(nodes, edges)];
   }));
+
+  const flowPositions = new Map<string, { x: number; y: number }>();
+  let rowY = 0;
+  let firstColumnWidth = 0;
+  let rowHeight = 0;
+  for (const [index, flow] of flows.entries()) {
+    if (index > 0 && index % 2 === 0) {
+      rowY += rowHeight + 160;
+      firstColumnWidth = 0;
+      rowHeight = 0;
+    }
+    const layout = layouts.get(flow.id)!;
+    const w = expanded.has(flow.id) ? layout.w : 340;
+    const h = expanded.has(flow.id) ? layout.h : 120;
+    const x = index % 2 === 0 ? 0 : firstColumnWidth + 160;
+    flowPositions.set(flow.id, { x, y: rowY });
+    if (index % 2 === 0) firstColumnWidth = w;
+    rowHeight = Math.max(rowHeight, h);
+  }
+
+  const cards: World["cards"] = flows.map((flow) => {
+    const layout = layouts.get(flow.id)!;
+    const position = flowPositions.get(flow.id)!;
+    return {
+      id: `flow:${flow.id}`,
+      type: "region",
+      name: expanded.has(flow.id) ? flow.title : `${flow.title} · collapsed`,
+      summary: "UI Flow",
+      imageUrl: null,
+      x: position.x,
+      y: position.y,
+      w: expanded.has(flow.id) ? layout.w : 340,
+      h: expanded.has(flow.id) ? layout.h : 120,
+    };
+  });
 
   for (const node of visibleNodes) {
     const flowId = node.flowId?.trim() || "main";
-    const flowIndex = Math.max(0, flowIndexById.get(flowId) ?? -1);
-    const localIndex = localIndexById.get(node.id) ?? 0;
     const type = TYPE_BY_NODE[node.kind];
+    const flowPosition = flowPositions.get(flowId)!;
+    const position = layouts.get(flowId)!.positions.get(node.id)!;
+    const { w, h } = cardSize(node);
     cards.push({
       id: node.id,
       type,
       name: node.title,
       summary: `${node.applicationArea} · ${node.kind.replaceAll("_", " ")} · ${node.confidence.label[0].toUpperCase()}${node.confidence.label.slice(1)} · ${node.confidence.score}% · ${node.evidence.length} source${node.evidence.length === 1 ? "" : "s"}`,
       imageUrl: null,
-      x: flowIndex * FLOW_PITCH + (localIndex % COLUMNS) * COLUMN_PITCH,
-      y: Math.floor(localIndex / COLUMNS) * ROW_PITCH + 60,
-      w: type === "note" ? NOTE_W : CARD_W,
-      h: type === "note" ? 120 : 150,
+      x: flowPosition.x + position.x,
+      y: flowPosition.y + position.y,
+      w,
+      h,
     });
   }
 
