@@ -123,6 +123,21 @@ export default function App() {
       } catch {
         // Keep an empty canvas when a stored tldraw snapshot is invalid.
       }
+      // The stored snapshot holds the geometry the layout produced when the
+      // project was last touched. Re-project it from the accepted analysis so
+      // an older project picks up the current layout instead of keeping a
+      // stale one. The camera is untouched, so only the cards move.
+      if (saved.acceptedAnalysis.nodes.length > 0) {
+        applyWorld(
+          ed,
+          proposalToWorld(
+            saved.acceptedAnalysis,
+            saved.projectName,
+            undefined,
+            new Set(saved.expandedFlowIds),
+          ),
+        );
+      }
       setProjectName(saved.projectName);
       setRepositoryIndex(saved.repositoryIndex);
       setRepositorySource(saved.repositorySource);
