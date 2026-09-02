@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  APP_STORY_STORAGE_KEY,
+  APPSTORY_STORAGE_KEY,
   deleteAppStory,
   loadAppStory,
   saveAppStory,
@@ -32,7 +32,7 @@ function memoryStorage(initial: Record<string, string> = {}) {
   return { store, data };
 }
 
-const APP_STORY_PAYLOAD: AppStoryPersistPayload = {
+const APPSTORY_PAYLOAD: AppStoryPersistPayload = {
   v: 1,
   projectName: "acme/app",
   repositoryIndex: null,
@@ -47,16 +47,16 @@ const APP_STORY_PAYLOAD: AppStoryPersistPayload = {
   repositorySource: null,
 };
 
-describe("App Story persistence", () => {
+describe("AppStory persistence", () => {
   it("round-trips a payload", () => {
     const { store } = memoryStorage();
-    expect(saveAppStory(store, APP_STORY_PAYLOAD)).toEqual({ ok: true });
-    expect(loadAppStory(store)).toEqual(APP_STORY_PAYLOAD);
+    expect(saveAppStory(store, APPSTORY_PAYLOAD)).toEqual({ ok: true });
+    expect(loadAppStory(store)).toEqual(APPSTORY_PAYLOAD);
   });
 
   it("returns null for missing and corrupt JSON", () => {
     expect(loadAppStory(memoryStorage().store)).toBeNull();
-    const { store } = memoryStorage({ [APP_STORY_STORAGE_KEY]: "{not-json" });
+    const { store } = memoryStorage({ [APPSTORY_STORAGE_KEY]: "{not-json" });
     expect(loadAppStory(store)).toBeNull();
   });
 
@@ -65,7 +65,7 @@ describe("App Story persistence", () => {
     store.setItem = () => {
       throw new DOMException("quota", "QuotaExceededError");
     };
-    expect(saveAppStory(store, APP_STORY_PAYLOAD)).toEqual({ ok: false });
+    expect(saveAppStory(store, APPSTORY_PAYLOAD)).toEqual({ ok: false });
   });
 
   it("does not persist private local repository metadata", () => {
@@ -87,31 +87,31 @@ describe("App Story persistence", () => {
 
     saveAppStory(store, payload);
 
-    expect(data[APP_STORY_STORAGE_KEY]).not.toContain("secret/path.ts");
+    expect(data[APPSTORY_STORAGE_KEY]).not.toContain("secret/path.ts");
     expect(loadAppStory(store)).toMatchObject({ repositoryIndex: null, consent: false, readRecords: [] });
   });
 
   it("never persists canvas geometry, and drops a leftover snapshot on load", () => {
     const { store, data } = memoryStorage();
-    saveAppStory(store, APP_STORY_PAYLOAD);
-    expect(data[APP_STORY_STORAGE_KEY]).not.toContain("snapshot");
+    saveAppStory(store, APPSTORY_PAYLOAD);
+    expect(data[APPSTORY_STORAGE_KEY]).not.toContain("snapshot");
 
     // A payload saved before the canvas stopped persisting its own geometry
     // can still be sitting in a returning user's browser.
     const { store: legacyStore } = memoryStorage({
-      [APP_STORY_STORAGE_KEY]: JSON.stringify({ ...APP_STORY_PAYLOAD, snapshot: { shape: { x: 1 } } }),
+      [APPSTORY_STORAGE_KEY]: JSON.stringify({ ...APPSTORY_PAYLOAD, snapshot: { shape: { x: 1 } } }),
     });
-    expect(loadAppStory(legacyStore)).toEqual(APP_STORY_PAYLOAD);
+    expect(loadAppStory(legacyStore)).toEqual(APPSTORY_PAYLOAD);
   });
 
-  it("uses a separate key and deletes only App Story data", () => {
+  it("uses a separate key and deletes only AppStory data", () => {
     const otherKey = "unrelated.storage.key";
     const { store, data } = memoryStorage({ [otherKey]: "keep me" });
 
-    expect(saveAppStory(store, APP_STORY_PAYLOAD)).toEqual({ ok: true });
-    expect(loadAppStory(store)).toEqual(APP_STORY_PAYLOAD);
+    expect(saveAppStory(store, APPSTORY_PAYLOAD)).toEqual({ ok: true });
+    expect(loadAppStory(store)).toEqual(APPSTORY_PAYLOAD);
     deleteAppStory(store);
-    expect(data[APP_STORY_STORAGE_KEY]).toBeUndefined();
+    expect(data[APPSTORY_STORAGE_KEY]).toBeUndefined();
     expect(data[otherKey]).toBe("keep me");
   });
 });

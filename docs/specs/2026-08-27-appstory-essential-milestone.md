@@ -1,4 +1,4 @@
-# App Story product specification
+# AppStory product specification
 
 **Status:** Implemented locally; release verification remains
 
@@ -8,9 +8,9 @@
 
 ## Outcome
 
-App Story turns a public GitHub repository or local folder into an evidence-backed visual story of an application. A mixed product team can review UI Flows, expand a Screen into material technical steps, and assess Possible Gaps without reading the full repository.
+AppStory turns a public GitHub repository or local folder into an evidence-backed visual story of an application. A mixed product team can review UI Flows, expand a Screen into material technical steps, and assess Possible Gaps without reading the full repository.
 
-The primary demonstration uses App Story's own public repository. The complete journey must take less than three minutes.
+The primary demonstration uses AppStory's own public repository. The complete journey must take less than three minutes.
 
 ## Product scope
 
@@ -28,7 +28,7 @@ The primary demonstration uses App Story's own public repository. The complete j
 12. Review gaps with a human status, Impact, reason, and optional unverified reviewer name.
 13. Export and import accepted analysis in a versioned Project File.
 14. Export accepted analysis as Markdown, SVG, and PNG.
-15. Delete App Story project data through a confirmed user action.
+15. Delete AppStory project data through a confirmed user action.
 
 ## Deferred scope
 
@@ -121,7 +121,7 @@ Read tools use `readOnlyHint`. Tools that return repository or graph text use `u
 ## Primary user journey
 
 1. A person connects a public GitHub repository or local folder.
-2. App Story shows the fixed Repository Revision and indexed scope.
+2. AppStory shows the fixed Repository Revision and indexed scope.
 3. The person grants Repository Consent.
 4. A WebMCP agent searches approved paths and reads bounded source ranges.
 5. Read Records appear while the agent submits proposal batches.
@@ -148,7 +148,7 @@ Read tools use `readOnlyHint`. Tools that return repository or graph text use `u
 
 ## Persistence and sharing
 
-- Save current browser state under `app-story.v1`.
+- Save current browser state under `appstory.v1`.
 - Do not persist local folder handles, local source access, or local Read Records.
 - Project Files contain repository identity, accepted analysis, gap reviews, and expanded UI Flow state.
 - Project Files do not contain source text, permissions, Read Records, or draft proposals.
@@ -170,7 +170,7 @@ Read tools use `readOnlyHint`. Tools that return repository or graph text use `u
 11. **Evidence navigation:** A GitHub link points to the analyzed commit and valid lines.
 12. **Accessibility:** A keyboard-only user can inspect all accepted graph information and review gaps.
 13. **Sharing:** Project File and report exports omit source content and permissions.
-14. **Deletion:** Confirmed deletion removes App Story project data.
+14. **Deletion:** Confirmed deletion removes AppStory project data.
 15. **Demo:** A new user can complete the primary journey in less than three minutes.
 
 ## Release direction

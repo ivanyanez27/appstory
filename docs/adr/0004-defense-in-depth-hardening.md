@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 
-App Story extends [ADR 0002](0002-treat-repositories-as-untrusted-data.md) with
+AppStory extends [ADR 0002](0002-treat-repositories-as-untrusted-data.md) with
 layered checks, because a single filter that is "mostly right" still leaks a
 developer's credentials in local-folder mode.
 

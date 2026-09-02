@@ -22,7 +22,7 @@ describe("Project File", () => {
 
   it("rejects invalid graph data without returning a partial project", () => {
     const parsed = parseProjectFile(JSON.stringify({
-      format: "app-story.project",
+      format: "appstory.project",
       version: 1,
       projectName: "Bad",
       repository: { source: "github", revision: { owner: "acme", repo: "app", commitSha: "a".repeat(40) } },
@@ -36,7 +36,7 @@ describe("Project File", () => {
 
   it("rejects an imported evidence path that escapes the repository", () => {
     const parsed = parseProjectFile(JSON.stringify({
-      format: "app-story.project",
+      format: "appstory.project",
       version: 1,
       projectName: "Traversal",
       repository: { source: "github", revision: { owner: "acme", repo: "app", commitSha: "a".repeat(40) } },
@@ -57,7 +57,7 @@ describe("Project File", () => {
 
   it("rejects a GitHub identity that cannot create safe Evidence links", () => {
     const parsed = parseProjectFile(JSON.stringify({
-      format: "app-story.project",
+      format: "appstory.project",
       version: 1,
       projectName: "Bad identity",
       repository: { source: "github", revision: { owner: "acme/team", repo: "app", commitSha: "a".repeat(40) } },

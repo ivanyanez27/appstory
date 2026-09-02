@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { exportAs, type Editor } from "tldraw";
 import { emptyAnalysisProposal, type AnalysisProposal } from "./analysis";
 import { proposalToWorld } from "./appStory";
-import { AppStoryTools, APP_STORY_TOOLS, type ReadRecord } from "./AppStoryTools";
+import { AppStoryTools, APPSTORY_TOOLS, type ReadRecord } from "./AppStoryTools";
 import { applyWorld, shapeIdFor } from "./adapter";
 import { Canvas } from "./canvas";
 import { HowToPlay } from "./help";
@@ -39,7 +39,7 @@ function GapReviewControls({
   const [reason, setReason] = useState(current?.reason ?? "");
   const [reviewer, setReviewer] = useState(current?.reviewer ?? "");
   return (
-    <form className="app-story-gap-review" onSubmit={(event) => {
+    <form className="appstory-gap-review" onSubmit={(event) => {
       event.preventDefault();
       onSave({ nodeId, status, impact, reason, ...(reviewer.trim() ? { reviewer } : {}) });
     }}>
@@ -278,7 +278,7 @@ export default function App() {
   };
 
   const deleteProject = () => {
-    if (!window.confirm("Delete this App Story project? This cannot be undone without an export.")) return;
+    if (!window.confirm("Delete this AppStory project? This cannot be undone without an export.")) return;
     deleteAppStory(window.localStorage);
     if (editor) applyWorld(editor, { name: "Untitled app", cards: [], links: [] });
     setProjectName("Untitled app");
@@ -312,7 +312,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${projectName.trim().replaceAll(/[^a-zA-Z0-9._-]+/g, "-") || "app-story"}${suffix}`;
+    link.download = `${projectName.trim().replaceAll(/[^a-zA-Z0-9._-]+/g, "-") || "appstory"}${suffix}`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -320,7 +320,7 @@ export default function App() {
   const exportProject = () => {
     const project = portableProject();
     if (!project) return;
-    downloadFile(serializeProjectFile(project), "application/json", ".app-story.json");
+    downloadFile(serializeProjectFile(project), "application/json", ".appstory.json");
     setToast("Project File exported.");
   };
 
@@ -334,7 +334,7 @@ export default function App() {
       setToast("Could not build the Markdown report.");
       return;
     }
-    downloadFile(markdown, "text/markdown;charset=utf-8", ".app-story.md");
+    downloadFile(markdown, "text/markdown;charset=utf-8", ".appstory.md");
     setToast("Markdown report exported.");
   };
 
@@ -349,7 +349,7 @@ export default function App() {
       if (ids.length === 0) throw new Error("The accepted graph is not on the canvas.");
       await exportAs(editor, ids, {
         format,
-        name: projectName.trim().replaceAll(/[^a-zA-Z0-9._-]+/g, "-") || "app-story",
+        name: projectName.trim().replaceAll(/[^a-zA-Z0-9._-]+/g, "-") || "appstory",
         background: true,
         darkMode: false,
         padding: "auto",
@@ -473,7 +473,7 @@ export default function App() {
           <div className="lsw-sub">evidence-backed application flow</div>
         </div>
         <div className="lsw-header-right">
-          <StatusChip supported={supported} toolCount={APP_STORY_TOOLS.length} />
+          <StatusChip supported={supported} toolCount={APPSTORY_TOOLS.length} />
           <CardCount cardCount={acceptedAnalysis.nodes.length} />
           <button
             type="button"
@@ -489,7 +489,7 @@ export default function App() {
           <button type="button" disabled={!editor || acceptedAnalysis.nodes.length === 0 || Boolean(exportingImage)} onClick={() => void exportGraph("svg")}>{exportingImage === "svg" ? "Exporting…" : "SVG"}</button>
           <button type="button" disabled={!editor || acceptedAnalysis.nodes.length === 0 || Boolean(exportingImage)} onClick={() => void exportGraph("png")}>{exportingImage === "png" ? "Exporting…" : "PNG"}</button>
           <button type="button" onClick={() => importInputRef.current?.click()}>Import</button>
-          <input ref={importInputRef} className="app-story-file-input" type="file" accept="application/json,.json" aria-label="Import Project File" onChange={(event) => {
+          <input ref={importInputRef} className="appstory-file-input" type="file" accept="application/json,.json" aria-label="Import Project File" onChange={(event) => {
             const file = event.target.files?.[0];
             event.target.value = "";
             if (file) void importProject(file);
@@ -498,16 +498,16 @@ export default function App() {
         </div>
       </header>
 
-      <section className="app-story-source" aria-label="Repository connection">
+      <section className="appstory-source" aria-label="Repository connection">
         <form onSubmit={(event) => { event.preventDefault(); void connect(); }}>
           <label htmlFor="repository-url">Public GitHub repository</label>
           <input id="repository-url" type="url" required placeholder="https://github.com/owner/repository" value={repositoryUrl} onChange={(event) => setRepositoryUrl(event.target.value)} />
           <button type="submit" disabled={connecting}>{connecting ? "Connecting…" : "Connect"}</button>
           <button type="button" disabled={connecting} onClick={() => void connectLocal()}>Choose local folder</button>
         </form>
-        {connectionError && <p className="app-story-error" role="alert">{connectionError}</p>}
+        {connectionError && <p className="appstory-error" role="alert">{connectionError}</p>}
         {repositoryIndex && (
-          <div className="app-story-repository-state">
+          <div className="appstory-repository-state">
             <span><strong>{repositorySource === "local" ? repositoryIndex.revision.repo : `${repositoryIndex.revision.owner}/${repositoryIndex.revision.repo}`}</strong> · {repositorySource ?? "repository"} · revision {repositoryIndex.revision.commitSha.slice(0, 8)}</span>
             <span>{eligibleCount} approved files · {excludedCount} excluded{repositoryIndex.truncated ? " · GitHub index truncated" : ""}</span>
             {excludedCount > 0 && (
@@ -529,18 +529,18 @@ export default function App() {
       </section>
 
       {draftInProgress && (
-        <section className="app-story-draft" aria-label="Analysis in progress" aria-live="polite">
+        <section className="appstory-draft" aria-label="Analysis in progress" aria-live="polite">
           <strong>Analysis in progress:</strong> {proposal.nodes.length} node{proposal.nodes.length === 1 ? "" : "s"} and {proposal.edges.length} connection{proposal.edges.length === 1 ? "" : "s"} in draft
           <button type="button" onClick={() => { setProposal(EMPTY); setAnalysisSessionId(null); }}>Discard draft</button>
         </section>
       )}
 
       {finalized && (
-        <section className="app-story-review" aria-label="Analysis proposal review">
+        <section className="appstory-review" aria-label="Analysis proposal review">
           <details open>
             <summary><strong>Proposal ready:</strong> {proposal.nodes.length} nodes and {proposal.edges.length} connections</summary>
             {revisionComparison.length > 0 && (
-              <p className="app-story-revision-summary">
+              <p className="appstory-revision-summary">
                 Compared to the accepted analysis: {revisionSummary.added} added, {revisionSummary.changed} changed, {revisionSummary.possiblyRemoved} possibly removed
               </p>
             )}
@@ -550,7 +550,7 @@ export default function App() {
                 return (
                 <li key={node.id}>
                   <strong>{node.title}</strong>
-                  {change && change !== "unchanged" && <span className={`app-story-revision-${change}`}> · {change.replaceAll("_", " ")}</span>}
+                  {change && change !== "unchanged" && <span className={`appstory-revision-${change}`}> · {change.replaceAll("_", " ")}</span>}
                   {" · "}{node.kind.replaceAll("_", " ")} · {node.confidence.label} {node.confidence.score}%
                   <div>{node.factors.map((factor) => `${factor.strength} ${factor.kind}: ${factor.detail}`).join("; ")}</div>
                   <div>{node.evidence.map((item) => `${item.path}:${item.startLine}-${item.endLine}`).join(", ")}</div>
@@ -561,18 +561,18 @@ export default function App() {
                 return (
                 <li key={edge.id}>
                   <strong>{edge.label}</strong>
-                  {change && change !== "unchanged" && <span className={`app-story-revision-${change}`}> · {change.replaceAll("_", " ")}</span>}
+                  {change && change !== "unchanged" && <span className={`appstory-revision-${change}`}> · {change.replaceAll("_", " ")}</span>}
                   {" · "}{edge.fromId} → {edge.toId} · {edge.confidence.label} {edge.confidence.score}%
                 </li>
               );})}
               {revisionComparison.filter((item) => item.status === "possibly_removed").map((item) => (
-                <li key={`${item.itemType}:${item.itemId}`} className="app-story-revision-possibly_removed">
+                <li key={`${item.itemType}:${item.itemId}`} className="appstory-revision-possibly_removed">
                   <strong>{item.itemId}</strong> · possibly removed {item.itemType}
                 </li>
               ))}
             </ul>
           </details>
-          <div className="app-story-review-actions">
+          <div className="appstory-review-actions">
             <button type="button" onClick={acceptProposal}>Accept proposal</button>
             <button type="button" onClick={() => { setProposal(EMPTY); setFinalized(false); setAnalysisSessionId(null); }}>Discard</button>
           </div>
@@ -586,8 +586,8 @@ export default function App() {
             {repositoryIndex ? (draftInProgress ? "Your WebMCP agent is building an analysis proposal. Select Source reads in the header to see what it has read." : consent ? "Repository ready. Ask your WebMCP agent to map the main UI flow." : "Review the repository scope and grant source access.") : "Connect a public GitHub repository to map its application story."}
           </div>
         )}
-        <aside className={outlineOpen ? "app-story-outline" : "app-story-outline app-story-outline-closed"} aria-label="Flow outline">
-          <div className="app-story-outline-head">
+        <aside className={outlineOpen ? "appstory-outline" : "appstory-outline appstory-outline-closed"} aria-label="Flow outline">
+          <div className="appstory-outline-head">
             <h2>Flow outline</h2>
             <button type="button" aria-expanded={outlineOpen} onClick={() => setOutlineOpen((v) => !v)}>
               {outlineOpen ? "Hide" : "Show"}
@@ -595,7 +595,7 @@ export default function App() {
           </div>
           {!outlineOpen ? null : acceptedAnalysis.nodes.length === 0 ? <p>No accepted analysis.</p> : (
             <>
-            <ul className="app-story-flow-list">
+            <ul className="appstory-flow-list">
               {flows.map((flow) => (
                 <li key={flow.id}>
                   <strong>{flow.title}</strong> · {flow.nodeIds.length} item{flow.nodeIds.length === 1 ? "" : "s"}

@@ -6,7 +6,7 @@
 // This file used to also hold a full CRUD model (add/update/delete a card,
 // a 50-card cap, a compact-index summarizer) for the product's earlier
 // Living Story World form, where a WebMCP agent edited the board directly.
-// App Story replaced that with an evidence-reviewed proposal flow, so that
+// AppStory replaced that with an evidence-reviewed proposal flow, so that
 // model has no caller left; only the shared types below survive it.
 
 export type CardType = "character" | "place" | "plot" | "note" | "region";

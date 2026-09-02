@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { APP_STORY_TOOLS } from "./AppStoryTools";
+import { APPSTORY_TOOLS } from "./AppStoryTools";
 
 const EXAMPLE_PROMPT =
   "Map the main UI flows in this repository. Read the routes and screen " +
@@ -17,7 +17,7 @@ export function HowToPlay() {
         <div className="lsw-help-pop">
           <p className="lsw-help-label">Before you start</p>
           <p>
-            App Story needs a browser where a WebMCP agent can run. The status
+            AppStory needs a browser where a WebMCP agent can run. The status
             chip in the header shows <strong>WebMCP ready</strong> when one is
             connected. If it shows <strong>unavailable</strong>, open this page
             in a WebMCP-enabled browser first.
@@ -81,7 +81,7 @@ export function HowToPlay() {
 
           <p className="lsw-help-label">WebMCP tools the agent can call</p>
           <ul>
-            {APP_STORY_TOOLS.map((t) => (
+            {APPSTORY_TOOLS.map((t) => (
               <li key={t.name}>
                 <strong>{t.title}</strong> — {t.description}
               </li>

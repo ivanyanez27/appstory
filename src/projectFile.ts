@@ -18,7 +18,7 @@ export type AppStoryProject = {
   expandedFlowIds: string[];
 };
 
-type AppStoryProjectFile = AppStoryProject & { format: "app-story.project"; version: 1 };
+type AppStoryProjectFile = AppStoryProject & { format: "appstory.project"; version: 1 };
 
 function record(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -74,14 +74,14 @@ function parseAnalysis(value: unknown): AnalysisProposal | null {
 }
 
 export function serializeProjectFile(project: AppStoryProject): string {
-  return JSON.stringify({ format: "app-story.project", version: 1, ...project } satisfies AppStoryProjectFile, null, 2);
+  return JSON.stringify({ format: "appstory.project", version: 1, ...project } satisfies AppStoryProjectFile, null, 2);
 }
 
 export function parseProjectFile(text: string): { ok: true; project: AppStoryProject } | { ok: false; error: string } {
   if (new TextEncoder().encode(text).byteLength > MAX_PROJECT_FILE_BYTES) return { ok: false, error: "Project File is larger than 5 MB." };
   try {
     const value: unknown = JSON.parse(text);
-    if (!record(value) || value.format !== "app-story.project" || value.version !== 1 ||
+    if (!record(value) || value.format !== "appstory.project" || value.version !== 1 ||
         typeof value.projectName !== "string" || !value.projectName.trim() || value.projectName.length > 200) {
       return { ok: false, error: "Project File format is invalid." };
     }

@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "app-story",
+  "name": "appstory",
   "main": "worker/index.ts",
   "compatibility_date": "2026-08-30",
   "assets": {

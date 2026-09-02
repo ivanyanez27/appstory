@@ -1,12 +1,12 @@
-# Product requirements — App Story
+# Product requirements — AppStory
 
-**Product:** App Story
+**Product:** AppStory
 
-**Repository:** [ivanyanez27/storytime](https://github.com/ivanyanez27/storytime)
+**Repository:** [ivanyanez27/appstory](https://github.com/ivanyanez27/appstory)
 
 **Status:** Core product implemented and deployed; release verification in progress
 
-**Live:** [app-story.ivanyanez27.workers.dev](https://app-story.ivanyanez27.workers.dev)
+**Live:** [appstory.ivanyanez27.workers.dev](https://appstory.ivanyanez27.workers.dev)
 
 **Updated:** 30 August 2026
 
@@ -14,11 +14,11 @@
 
 ## 1. Product summary
 
-App Story turns a public GitHub repository or local source folder into an evidence-backed visual story of an application.
+AppStory turns a public GitHub repository or local source folder into an evidence-backed visual story of an application.
 
 A WebMCP agent reads only approved source ranges and proposes UI Flows. A person reviews the proposal before it changes the accepted graph. Product, design, engineering, and quality teams can then inspect Screens, Technical Flows, Evidence, confidence, and Possible Gaps on one shared canvas.
 
-App Story is a static browser application. It has no backend and does not run repository code.
+AppStory is a static browser application. It has no backend and does not run repository code.
 
 ## 2. Problem
 
@@ -30,7 +30,7 @@ Software behavior is spread across routes, Screens, validation, tests, and servi
 - Where is Evidence weak, conflicting, or missing?
 - Which Possible Gaps need human review?
 
-Code maps and call graphs contain too much implementation detail. Static flow diagrams become stale and often do not show their Evidence. App Story gives the team a progressive graph that remains tied to one Repository Revision.
+Code maps and call graphs contain too much implementation detail. Static flow diagrams become stale and often do not show their Evidence. AppStory gives the team a progressive graph that remains tied to one Repository Revision.
 
 ## 3. Users
 
@@ -47,7 +47,7 @@ Primary users are product managers, designers, software engineers, quality engin
 
 ## 5. Non-goals
 
-App Story does not provide:
+AppStory does not provide:
 
 - Private GitHub repository authentication
 - Accounts, a backend, or live collaboration
@@ -61,14 +61,14 @@ App Story does not provide:
 ## 6. Core workflow
 
 1. A person connects a public GitHub repository or chooses a local folder.
-2. App Story creates an index and shows approved and excluded files.
+2. AppStory creates an index and shows approved and excluded files.
 3. The person grants separate Repository Consent.
 4. A WebMCP agent searches the index and reads bounded source ranges.
-5. App Story records every successful source read.
+5. AppStory records every successful source read.
 6. The agent submits transactional Analysis Proposal batches.
 7. The agent finalizes the proposal.
 8. The person reviews and accepts or discards the proposal.
-9. App Story shows the accepted UI Flow Overview on the canvas and in the outline.
+9. AppStory shows the accepted UI Flow Overview on the canvas and in the outline.
 10. The person expands a Flow or Screen, opens Evidence, and reviews Possible Gaps.
 
 ## 7. Repository connection
@@ -101,7 +101,7 @@ App Story does not provide:
 - Source reads require consent, an indexed approved file, a reason, and a valid line range.
 - One source read can return no more than 500 lines.
 - Source excerpts render as inert text.
-- App Story never executes repository code or renders repository markup as active HTML.
+- AppStory never executes repository code or renders repository markup as active HTML.
 - Successful reads create visible Read Records with the path, reason, size, time, and line range.
 - Complete source text does not enter browser persistence or Project Files.
 
@@ -132,7 +132,7 @@ Each discovered node and connection must have a stable identity, indexed Evidenc
 
 ### Confidence
 
-App Story calculates one label and percentage from Evidence Factors:
+AppStory calculates one label and percentage from Evidence Factors:
 
 - **Confirmed:** 80–100%, traceable, and supported by direct source Evidence
 - **Inferred:** 40–79% and traceable
@@ -172,7 +172,7 @@ The person also selects low, medium, high, or critical Impact. A reason is requi
 
 ## 12. WebMCP tools
 
-App Story registers six tools:
+AppStory registers six tools:
 
 | Tool | Purpose |
 |---|---|
@@ -187,9 +187,9 @@ Read tools use `readOnlyHint`. Tools that return repository or graph text use `u
 
 ## 13. Persistence and sharing
 
-- Save current App Story state under `app-story.v1` in browser storage.
+- Save current AppStory state under `appstory.v1` in browser storage.
 - Keep local repository access and consent out of persisted state.
-- Provide confirmed deletion of App Story project data.
+- Provide confirmed deletion of AppStory project data.
 - Export and import a versioned Project File of no more than 5 MB.
 - Project Files contain repository identity, accepted analysis, gap reviews, and expanded Flow state.
 - Project Files do not contain source text, repository permissions, draft proposals, or Read Records.
@@ -228,7 +228,7 @@ The canvas must remain useful in browsers without WebMCP. The status control mus
 9. A Screen can reveal its material Technical Flow.
 10. GitHub Evidence links point to the analyzed commit and valid lines.
 11. A keyboard-only user can inspect and review all accepted graph information.
-12. Project deletion removes App Story browser data after confirmation.
+12. Project deletion removes AppStory browser data after confirmation.
 13. Project File import rejects invalid, oversized, or unsafe content.
 14. Markdown, SVG, and PNG exports contain accepted analysis only.
 
@@ -242,7 +242,7 @@ The canvas must remain useful in browsers without WebMCP. The status control mus
 
 ## 17. Related documents
 
-- [App Story specification](docs/specs/2026-08-27-app-story-essential-milestone.md)
-- [Implementation and release plan](docs/plans/2026-08-27-app-story-essential-milestone.md)
+- [AppStory specification](docs/specs/2026-08-27-appstory-essential-milestone.md)
+- [Implementation and release plan](docs/plans/2026-08-27-appstory-essential-milestone.md)
 - [Domain language](CONTEXT.md)
 - [Architecture decisions](docs/adr/0001-progressive-flow-graph.md)

@@ -1,4 +1,4 @@
-/* App Story identity. The mark is terminal code brackets around a central
+/* AppStory identity. The mark is terminal code brackets around a central
    active trace node — "code compiling into human-readable visual stories".
    The wordmark sets "App" in text colour and "Story" in the amber accent,
    italic, per Brand Guidelines v1.0. */
@@ -10,7 +10,7 @@ export function LogoMark({ size = 28 }: { size?: number }) {
       height={size}
       viewBox="0 0 32 32"
       role="img"
-      aria-label="App Story"
+      aria-label="AppStory"
     >
       <rect
         x="1.6"
