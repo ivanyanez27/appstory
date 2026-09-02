@@ -121,16 +121,14 @@ export default function App() {
     const saved = loadAppStory(window.localStorage);
     if (saved) {
       // Nothing on the canvas is saved — see `persist` above — so it is built
-      // fresh from the accepted analysis every time the app opens.
+      // fresh from the accepted analysis every time the app opens, with every
+      // flow collapsed. An expanded graph is far too wide for one screen, so
+      // restoring the stored expansion would open at a scale where no card is
+      // readable. Expansion is a within-session choice.
       if (saved.acceptedAnalysis.nodes.length > 0) {
         applyWorld(
           ed,
-          proposalToWorld(
-            saved.acceptedAnalysis,
-            saved.projectName,
-            undefined,
-            new Set(saved.expandedFlowIds),
-          ),
+          proposalToWorld(saved.acceptedAnalysis, saved.projectName, undefined, new Set()),
         );
         // Fit the whole accepted graph on load; there is no saved camera to
         // restore it to instead.
@@ -146,7 +144,7 @@ export default function App() {
       setReadRecords(saved.readRecords);
       setAnalysisSessionId(saved.analysisSessionId);
       setGapReviews(saved.gapReviews);
-      setExpandedFlowIds(new Set(saved.expandedFlowIds));
+      setExpandedFlowIds(new Set());
       if (saved.repositorySource === "local") {
         setConnectionError("Reconnect the local folder to read source files.");
       }
@@ -161,7 +159,7 @@ export default function App() {
         readRecords: saved.readRecords,
         analysisSessionId: saved.analysisSessionId,
         gapReviews: saved.gapReviews,
-        expandedFlowIds: new Set(saved.expandedFlowIds),
+        expandedFlowIds: new Set(),
       };
     }
     setEditor(ed);
@@ -380,7 +378,7 @@ export default function App() {
       ? project.repository.revision
       : { owner: "local", ...project.repository.revision };
     const index: RepositoryIndex = { revision, files: [], truncated: false };
-    const expanded = new Set(project.expandedFlowIds);
+    const expanded = new Set<string>();
     setProjectName(project.projectName);
     setRepositoryIndex(index);
     setRepositorySource(project.repository.source);
