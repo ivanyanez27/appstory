@@ -1,3 +1,5 @@
+**Live:** [appstory.ivanideas.com](https://appstory.ivanideas.com) · **Code:** [github.com/ivanyanez27/appstory](https://github.com/ivanyanez27/appstory)
+
 ## Inspiration
 
 Every team I have worked on hits the same wall. A product manager asks a simple question — *"What are the main things a user can do in this app, and where could it break?"* — and the only honest answer is *"read the code."* Route files, view components, validation, service calls, and tests each hold one piece of the story. No single document holds all of it, and the diagrams that try are stale within a sprint.
