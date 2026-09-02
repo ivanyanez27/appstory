@@ -106,7 +106,7 @@ Deploy the `dist/` folder to a static HTTPS host. Configs for three are in this 
 
 The live deployment is fully verified with a spec-compliant `document.modelContext` stub standing in for the platform, driving the app's actual tool-registration and tool-execution code. Two things remain genuinely manual — each needs a human's own account or a change to their own browser, so they can't be automated from here:
 
-- **Chrome**: no shipping Chrome build exposes `document.modelContext` without action from a site owner or a person browsing. Either register this origin for [Chrome's WebMCP origin trial](https://developer.chrome.com/origintrials/#/register_trial/4163014905550602241) (needs a Google account; register `https://appstory.ivanyanez27.workers.dev` exactly, then paste the issued token into the commented-out `<meta http-equiv="origin-trial">` tag in `index.html` and redeploy — every visitor then gets native WebMCP, no flag needed), or open `chrome://flags/#enable-webmcp-testing` in your own Chrome, enable it, and relaunch.
+- **Chrome**: no shipping Chrome build exposes `document.modelContext` without action from a site owner or a person browsing. Either register this origin for [Chrome's WebMCP origin trial](https://developer.chrome.com/origintrials/#/register_trial/4163014905550602241) (needs a Google account; register `https://appstory.ivanideas.com` exactly, then paste the issued token into the commented-out `<meta http-equiv="origin-trial">` tag in `index.html` and redeploy — every visitor then gets native WebMCP, no flag needed), or open `chrome://flags/#enable-webmcp-testing` in your own Chrome, enable it, and relaunch.
 - **ChatGPT**: open the live URL in ChatGPT's in-app browser from your own account.
 
 ## Product documents
