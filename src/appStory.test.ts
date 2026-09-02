@@ -6,7 +6,7 @@ const evidence = [{ path: "src/App.tsx", startLine: 1, endLine: 4, source: "sour
 const factors = [{ kind: "screen_implementation" as const, strength: "strong" as const, detail: "Rendered route." }];
 const confidence = { score: 90, label: "confirmed" as const, reason: "Direct source.", traceable: true };
 
-describe("App Story integration", () => {
+describe("AppStory integration", () => {
   it("does not expose a local repository index before consent", () => {
     expect(mayExposeRepositoryIndex("local", false)).toBe(false);
     expect(mayExposeRepositoryIndex("local", true)).toBe(true);

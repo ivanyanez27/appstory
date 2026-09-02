@@ -1,4 +1,4 @@
-# App Story implementation and release plan
+# AppStory implementation and release plan
 
 **Status:** Product implementation complete; release verification remains
 
@@ -14,7 +14,7 @@ Keep the product static, local-first, and evidence-backed. Do not add deferred s
 
 ### 1. Analysis model
 
-- Added App Story node and connection kinds.
+- Added AppStory node and connection kinds.
 - Added Evidence, Evidence Factors, AI reasons, and calculated confidence.
 - Kept graph facts separate from canvas presentation state.
 - Added transactional proposal validation and canonical identities.
@@ -35,7 +35,7 @@ Keep the product static, local-first, and evidence-backed. Do not add deferred s
 
 ### 4. WebMCP interface
 
-- Added the six App Story tools.
+- Added the six AppStory tools.
 - Added read-only and untrusted-content annotations.
 - Kept one proposal-writing Analysis Session.
 - Kept accepted analysis unchanged during proposal work.
@@ -61,7 +61,7 @@ Keep the product static, local-first, and evidence-backed. Do not add deferred s
 
 ### 8. Persistence and sharing
 
-- Added App Story browser persistence under `app-story.v1`.
+- Added AppStory browser persistence under `appstory.v1`.
 - Added confirmed project deletion.
 - Added versioned Project File import and export.
 - Added Markdown, SVG, and PNG export.
@@ -77,7 +77,7 @@ Keep the product static, local-first, and evidence-backed. Do not add deferred s
 ### 1. Browser workflow
 
 1. Start from a clean browser profile.
-2. Connect the public App Story repository.
+2. Connect the public AppStory repository.
 3. Review exclusions and grant Repository Consent.
 4. Run the WebMCP self-analysis flow.
 5. Confirm that Read Records appear.
@@ -135,7 +135,7 @@ Test these cases:
 
 ## Release gate
 
-Release App Story only when:
+Release AppStory only when:
 
 - Automated tests, lint, and the production build pass.
 - Browser, keyboard, security, import, export, persistence, and deletion checks pass.

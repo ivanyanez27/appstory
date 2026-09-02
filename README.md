@@ -1,10 +1,10 @@
-# App Story
+# AppStory
 
-App Story turns a public GitHub repository into an evidence-backed visual story of an application. A mixed product team can review the main UI flow, open technical details, and find possible missing paths on one shared canvas.
+AppStory turns a public GitHub repository into an evidence-backed visual story of an application. A mixed product team can review the main UI flow, open technical details, and find possible missing paths on one shared canvas.
 
 Built for the [WebMCP Challenge](https://openai.com/webmcp-challenge/).
 
-## What App Story does
+## What AppStory does
 
 The core workflow is:
 
@@ -16,11 +16,11 @@ The core workflow is:
 6. Expand a screen to see material technical steps.
 7. Review confidence factors, source evidence, and possible gaps.
 
-The accepted proposal changes the graph only after human review. Repository text is untrusted input. App Story does not execute repository code or render source text as active HTML.
+The accepted proposal changes the graph only after human review. Repository text is untrusted input. AppStory does not execute repository code or render source text as active HTML.
 
-App Story supports public GitHub repositories and local folders. Project Files can export and import accepted analysis. Markdown, SVG, and PNG exports carry the accepted analysis only — no repository source text and no repository permissions. The accepted analysis can still hold agent-written free text (titles, labels, confidence reasons); a person reviews that text before it is accepted or exported.
+AppStory supports public GitHub repositories and local folders. Project Files can export and import accepted analysis. Markdown, SVG, and PNG exports carry the accepted analysis only — no repository source text and no repository permissions. The accepted analysis can still hold agent-written free text (titles, labels, confidence reasons); a person reviews that text before it is accepted or exported.
 
-App Story does not include private repository authentication, accounts, a backend, live collaboration, repository execution, or screen capture.
+AppStory does not include private repository authentication, accounts, a backend, live collaboration, repository execution, or screen capture.
 
 ## Main features
 
@@ -72,7 +72,7 @@ The [Model Context Tool Inspector](https://chromewebstore.google.com/detail/mode
 
 ## Technology
 
-App Story uses Vite, React, TypeScript, [tldraw](https://tldraw.dev), and `use-webmcp-tool`. It has no backend. Project state stays in the browser.
+AppStory uses Vite, React, TypeScript, [tldraw](https://tldraw.dev), and `use-webmcp-tool`. It has no backend. Project state stays in the browser.
 
 The site is one view. Every route renders the canvas application, and a single-page-application fallback serves `index.html` for any path.
 
@@ -94,7 +94,7 @@ npm run dev
 npm run build
 ```
 
-Live: [app-story.ivanyanez27.workers.dev](https://app-story.ivanyanez27.workers.dev)
+Live: [appstory.ivanyanez27.workers.dev](https://appstory.ivanyanez27.workers.dev)
 
 Deploy the `dist/` folder to a static HTTPS host. Configs for three are in this repo:
 
@@ -106,13 +106,13 @@ Deploy the `dist/` folder to a static HTTPS host. Configs for three are in this 
 
 The live deployment is fully verified with a spec-compliant `document.modelContext` stub standing in for the platform, driving the app's actual tool-registration and tool-execution code. Two things remain genuinely manual — each needs a human's own account or a change to their own browser, so they can't be automated from here:
 
-- **Chrome**: no shipping Chrome build exposes `document.modelContext` without action from a site owner or a person browsing. Either register this origin for [Chrome's WebMCP origin trial](https://developer.chrome.com/origintrials/#/register_trial/4163014905550602241) (needs a Google account; register `https://app-story.ivanyanez27.workers.dev` exactly, then paste the issued token into the commented-out `<meta http-equiv="origin-trial">` tag in `index.html` and redeploy — every visitor then gets native WebMCP, no flag needed), or open `chrome://flags/#enable-webmcp-testing` in your own Chrome, enable it, and relaunch.
+- **Chrome**: no shipping Chrome build exposes `document.modelContext` without action from a site owner or a person browsing. Either register this origin for [Chrome's WebMCP origin trial](https://developer.chrome.com/origintrials/#/register_trial/4163014905550602241) (needs a Google account; register `https://appstory.ivanyanez27.workers.dev` exactly, then paste the issued token into the commented-out `<meta http-equiv="origin-trial">` tag in `index.html` and redeploy — every visitor then gets native WebMCP, no flag needed), or open `chrome://flags/#enable-webmcp-testing` in your own Chrome, enable it, and relaunch.
 - **ChatGPT**: open the live URL in ChatGPT's in-app browser from your own account.
 
 ## Product documents
 
-- [Essential milestone specification](docs/specs/2026-08-27-app-story-essential-milestone.md)
-- [Implementation plan](docs/plans/2026-08-27-app-story-essential-milestone.md)
+- [Essential milestone specification](docs/specs/2026-08-27-appstory-essential-milestone.md)
+- [Implementation plan](docs/plans/2026-08-27-appstory-essential-milestone.md)
 - [Product requirements](PRD.md)
 - [Glossary and accepted domain decisions](CONTEXT.md)
 - [Architecture decisions](docs/adr/0001-progressive-flow-graph.md)

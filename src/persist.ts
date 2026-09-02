@@ -2,7 +2,7 @@ import type { AnalysisProposal } from "./analysis";
 import type { RepositoryIndex } from "./github";
 import type { GapReviewMap } from "./gapReview";
 
-export const APP_STORY_STORAGE_KEY = "app-story.v1";
+export const APPSTORY_STORAGE_KEY = "appstory.v1";
 
 export type AppStoryPersistPayload = {
   v: 1;
@@ -36,7 +36,7 @@ function withoutLocalRepositoryData(payload: AppStoryPersistPayload): AppStoryPe
 
 export function loadAppStory(storage: Storage): AppStoryPersistPayload | null {
   try {
-    const raw = storage.getItem(APP_STORY_STORAGE_KEY);
+    const raw = storage.getItem(APPSTORY_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<AppStoryPersistPayload>;
     if (
@@ -87,7 +87,7 @@ export function saveAppStory(
   payload: AppStoryPersistPayload,
 ): { ok: true } | { ok: false } {
   try {
-    storage.setItem(APP_STORY_STORAGE_KEY, JSON.stringify(withoutLocalRepositoryData(payload)));
+    storage.setItem(APPSTORY_STORAGE_KEY, JSON.stringify(withoutLocalRepositoryData(payload)));
     return { ok: true };
   } catch {
     return { ok: false };
@@ -95,5 +95,5 @@ export function saveAppStory(
 }
 
 export function deleteAppStory(storage: Storage): void {
-  storage.removeItem(APP_STORY_STORAGE_KEY);
+  storage.removeItem(APPSTORY_STORAGE_KEY);
 }

@@ -304,8 +304,8 @@ body {
   color: var(--text-muted);
 }
 
-.app-story-source,
-.app-story-review {
+.appstory-source,
+.appstory-review {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -315,16 +315,16 @@ body {
   font-size: 0.78rem;
   color: var(--text-muted);
 }
-.app-story-source form,
-.app-story-repository-state {
+.appstory-source form,
+.appstory-repository-state {
   display: flex;
   align-items: center;
   gap: 0.55rem;
   flex-wrap: wrap;
 }
-.app-story-source form { flex: 1; }
-.app-story-source label { color: var(--text-muted); }
-.app-story-source input[type="url"] {
+.appstory-source form { flex: 1; }
+.appstory-source label { color: var(--text-muted); }
+.appstory-source input[type="url"] {
   flex: 1;
   min-width: 16rem;
   padding: 0.38rem 0.55rem;
@@ -334,12 +334,12 @@ body {
   color: var(--text);
   font: inherit;
 }
-.app-story-source input[type="url"]::placeholder { color: var(--text-faint); }
-.app-story-source button,
-.app-story-review button,
-.app-story-draft button,
-.app-story-outline button,
-.app-story-gap-review button,
+.appstory-source input[type="url"]::placeholder { color: var(--text-faint); }
+.appstory-source button,
+.appstory-review button,
+.appstory-draft button,
+.appstory-outline button,
+.appstory-gap-review button,
 .lsw-danger-btn {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
@@ -350,57 +350,57 @@ body {
   cursor: pointer;
   transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease;
 }
-.app-story-source button:disabled { cursor: wait; opacity: 0.55; }
-.app-story-source button:hover:not(:disabled),
-.app-story-review button:hover:not(:disabled),
-.app-story-outline button:hover:not(:disabled),
-.app-story-gap-review button:hover:not(:disabled),
+.appstory-source button:disabled { cursor: wait; opacity: 0.55; }
+.appstory-source button:hover:not(:disabled),
+.appstory-review button:hover:not(:disabled),
+.appstory-outline button:hover:not(:disabled),
+.appstory-gap-review button:hover:not(:disabled),
 .lsw-danger-btn:hover:not(:disabled),
 .lsw-help-btn:hover {
   background: rgb(99 102 241 / 0.14);
   border-color: var(--indigo);
 }
-.app-story-source button:active:not(:disabled),
-.app-story-review button:active:not(:disabled),
-.app-story-outline button:active:not(:disabled),
-.app-story-gap-review button:active:not(:disabled),
+.appstory-source button:active:not(:disabled),
+.appstory-review button:active:not(:disabled),
+.appstory-outline button:active:not(:disabled),
+.appstory-gap-review button:active:not(:disabled),
 .lsw-danger-btn:active:not(:disabled),
 .lsw-help-btn:active {
   transform: translateY(1px);
 }
-.app-story-source button:focus-visible,
-.app-story-review button:focus-visible,
-.app-story-outline button:focus-visible,
-.app-story-gap-review button:focus-visible,
+.appstory-source button:focus-visible,
+.appstory-review button:focus-visible,
+.appstory-outline button:focus-visible,
+.appstory-gap-review button:focus-visible,
 .lsw-danger-btn:focus-visible,
 .lsw-help-btn:focus-visible,
-.app-story-source input:focus-visible,
+.appstory-source input:focus-visible,
 .lsw-world-name:focus-visible,
 .lsw-card-input:focus-visible,
-.app-story-outline a:focus-visible,
+.appstory-outline a:focus-visible,
 .lsw-help-pop a:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 /* Primary action — the submit button that connects a repository. */
-.app-story-source button[type="submit"] {
+.appstory-source button[type="submit"] {
   background: var(--accent);
   color: var(--accent-ink);
   border-color: var(--accent);
   font-weight: 600;
 }
-.app-story-source button[type="submit"]:hover:not(:disabled) {
+.appstory-source button[type="submit"]:hover:not(:disabled) {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
 }
-.app-story-repository-state { justify-content: flex-end; }
-.app-story-error { margin: 0; color: var(--danger); }
+.appstory-repository-state { justify-content: flex-end; }
+.appstory-error { margin: 0; color: var(--danger); }
 .lsw-danger-btn { color: var(--danger); border-color: rgb(248 113 127 / 0.4); }
 .lsw-danger-btn:hover:not(:disabled) {
   background: rgb(248 113 127 / 0.12);
   border-color: var(--danger);
 }
-.app-story-draft {
+.appstory-draft {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -410,26 +410,26 @@ body {
   font-size: 0.78rem;
   color: var(--text-muted);
 }
-.app-story-draft button { margin-left: auto; }
-.app-story-review {
+.appstory-draft button { margin-left: auto; }
+.appstory-review {
   background: rgb(16 185 129 / 0.1);
   border-color: rgb(16 185 129 / 0.4);
   color: var(--text);
 }
-.app-story-review > details { flex: 1; max-height: 12rem; overflow: auto; }
-.app-story-revision-summary { margin: 0.35rem 0; }
-.app-story-revision-added { color: var(--green); font-weight: 600; }
-.app-story-revision-changed { color: var(--amber); font-weight: 600; }
-.app-story-revision-possibly_removed,
-.app-story-revision-possibly_removed li { color: var(--danger); font-weight: 600; }
-.app-story-review-actions { display: flex; gap: 0.5rem; margin-left: auto; }
-.app-story-review-actions button:first-child {
+.appstory-review > details { flex: 1; max-height: 12rem; overflow: auto; }
+.appstory-revision-summary { margin: 0.35rem 0; }
+.appstory-revision-added { color: var(--green); font-weight: 600; }
+.appstory-revision-changed { color: var(--amber); font-weight: 600; }
+.appstory-revision-possibly_removed,
+.appstory-revision-possibly_removed li { color: var(--danger); font-weight: 600; }
+.appstory-review-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+.appstory-review-actions button:first-child {
   background: var(--green);
   color: #04140d;
   border-color: var(--green);
   font-weight: 600;
 }
-.app-story-outline {
+.appstory-outline {
   position: absolute;
   top: 0.75rem;
   left: 0.75rem;
@@ -446,29 +446,29 @@ body {
   font-size: 0.75rem;
   color: var(--text-muted);
 }
-.app-story-outline-closed { width: auto; }
-.app-story-outline-head {
+.appstory-outline-closed { width: auto; }
+.appstory-outline-head {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   margin-bottom: 0.45rem;
 }
-.app-story-outline-head button { margin-left: auto; }
-.app-story-outline h2 { margin: 0; font-size: 0.9rem; color: var(--text); }
-.app-story-outline p { margin: 0.25rem 0; }
-.app-story-outline strong { color: var(--text); }
-.app-story-outline a { color: var(--teal); }
-.app-story-outline ul { margin: 0.3rem 0; padding-left: 1rem; }
-.app-story-outline summary { cursor: pointer; }
-.app-story-outline summary:hover { color: var(--text); }
-.app-story-flow-list > li {
+.appstory-outline-head button { margin-left: auto; }
+.appstory-outline h2 { margin: 0; font-size: 0.9rem; color: var(--text); }
+.appstory-outline p { margin: 0.25rem 0; }
+.appstory-outline strong { color: var(--text); }
+.appstory-outline a { color: var(--teal); }
+.appstory-outline ul { margin: 0.3rem 0; padding-left: 1rem; }
+.appstory-outline summary { cursor: pointer; }
+.appstory-outline summary:hover { color: var(--text); }
+.appstory-flow-list > li {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   margin-bottom: 0.4rem;
 }
-.app-story-flow-list button { margin-left: auto; }
-.app-story-gap-review {
+.appstory-flow-list button { margin-left: auto; }
+.appstory-gap-review {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.4rem;
@@ -478,9 +478,9 @@ body {
   border-radius: var(--radius-sm);
   background: var(--bg-raised);
 }
-.app-story-gap-review label { display: grid; gap: 0.15rem; color: var(--text-muted); }
-.app-story-gap-review input,
-.app-story-gap-review select {
+.appstory-gap-review label { display: grid; gap: 0.15rem; color: var(--text-muted); }
+.appstory-gap-review input,
+.appstory-gap-review select {
   min-width: 0;
   font: inherit;
   color: var(--text);
@@ -489,15 +489,15 @@ body {
   border-radius: 3px;
   padding: 0.2rem 0.3rem;
 }
-.app-story-gap-review button { grid-column: 1 / -1; }
+.appstory-gap-review button { grid-column: 1 / -1; }
 
 @media (max-width: 760px) {
   .lsw-header { align-items: flex-start; }
   .lsw-header-right { flex-wrap: wrap; justify-content: flex-end; }
-  .app-story-source { align-items: stretch; flex-direction: column; }
-  .app-story-repository-state { justify-content: flex-start; }
+  .appstory-source { align-items: stretch; flex-direction: column; }
+  .appstory-repository-state { justify-content: flex-start; }
 }
-.app-story-file-input {
+.appstory-file-input {
   display: none;
 }
 
@@ -505,21 +505,21 @@ body {
   .pulse {
     animation: none;
   }
-  .app-story-outline {
+  .appstory-outline {
     backdrop-filter: none;
   }
-  .app-story-source button,
-.app-story-review button,
-.app-story-draft button,
-.app-story-outline button,
-  .app-story-gap-review button,
+  .appstory-source button,
+.appstory-review button,
+.appstory-draft button,
+.appstory-outline button,
+  .appstory-gap-review button,
   .lsw-danger-btn {
     transition: none;
   }
-  .app-story-source button:active:not(:disabled),
-  .app-story-review button:active:not(:disabled),
-  .app-story-outline button:active:not(:disabled),
-  .app-story-gap-review button:active:not(:disabled),
+  .appstory-source button:active:not(:disabled),
+  .appstory-review button:active:not(:disabled),
+  .appstory-outline button:active:not(:disabled),
+  .appstory-gap-review button:active:not(:disabled),
   .lsw-danger-btn:active:not(:disabled),
   .lsw-help-btn:active {
     transform: none;

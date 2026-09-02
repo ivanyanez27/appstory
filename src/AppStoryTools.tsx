@@ -71,7 +71,7 @@ const commonAnalysisProperties = {
   confidence: confidenceSchema,
 };
 
-export const APP_STORY_TOOLS: ToolDefinition[] = [
+export const APPSTORY_TOOLS: ToolDefinition[] = [
   {
     name: "get_project_state",
     title: "Read project state",
@@ -367,7 +367,7 @@ export function AppStoryTools(props: Props) {
     readRecords.current = props.readRecords;
   }
   const runtime = { proposal, sessionId, readRecords };
-  return APP_STORY_TOOLS.map((definition) => (
+  return APPSTORY_TOOLS.map((definition) => (
     <RegisteredAppStoryTool key={definition.name} definition={definition} props={props} runtime={runtime} />
   ));
 }

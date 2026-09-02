@@ -1,6 +1,6 @@
-# App Story domain language
+# AppStory domain language
 
-This glossary defines the terms that App Story uses for evidence-backed visual analysis of how people and systems move through a software product.
+This glossary defines the terms that AppStory uses for evidence-backed visual analysis of how people and systems move through a software product.
 
 ## Language
 
