@@ -94,7 +94,7 @@ npm run dev
 npm run build
 ```
 
-Live: [appstory.ivanyanez27.workers.dev](https://appstory.ivanyanez27.workers.dev)
+Live: [appstory.ivanideas.com](https://appstory.ivanideas.com) (also at [appstory.ivanyanez27.workers.dev](https://appstory.ivanyanez27.workers.dev))
 
 Deploy the `dist/` folder to a static HTTPS host. Configs for three are in this repo:
 

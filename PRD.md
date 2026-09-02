@@ -6,7 +6,7 @@
 
 **Status:** Core product implemented and deployed; release verification in progress
 
-**Live:** [appstory.ivanyanez27.workers.dev](https://appstory.ivanyanez27.workers.dev)
+**Live:** [appstory.ivanideas.com](https://appstory.ivanideas.com)
 
 **Updated:** 30 August 2026
 
