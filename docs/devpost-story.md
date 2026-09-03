@@ -53,28 +53,46 @@ Persisting a tldraw snapshot instead would let a stale layout survive a code cha
 
 Read tools use `readOnlyHint`. Every tool that returns repository or graph text uses `untrustedContentHint`, because the text was written by a repository author or by the agent, not by me.
 
-**Confidence as a formula, not a vibe.** Each fact carries evidence references and evidence factors. AppStory reduces them to one raw score:
+**Confidence as a formula, not a vibe.** Each fact carries evidence references and evidence factors. AppStory adds them into one raw score, then clips it to 0–100.
 
-$$
-\text{score} = \operatorname{clip}_{[0,100]}\!\left( \sum_{j \in \text{evidence}} e(\text{src}_j) \;+\; \sum_{i \in \text{factors}} w(k_i)\,m(s_i) \right)
-$$
+Each evidence reference adds points for where it came from:
 
-where $e(\cdot)$ weights an evidence reference by its source (source code $30$, test $10$, docs $5$), $w(k_i)$ weights the factor kind, and $m(s_i)$ scales by factor strength. Two rules then override the number:
+| Evidence source | Points |
+|---|---|
+| Source code | +30 |
+| Test | +10 |
+| Documentation | +5 |
 
-$$
-\text{score} \leftarrow 79 \quad \text{if } \text{score} \ge 80 \ \wedge \ \big(\lnot\,\text{direct source evidence} \ \vee \ \text{strong conflict}\big)
-$$
+Each evidence factor adds its own weight, scaled by strength (weak ×0.4, moderate ×0.7, strong ×1.0):
 
-$$
-\text{label} =
-\begin{cases}
-\textbf{Confirmed} & \text{score} \ge 80\\
-\textbf{Inferred} & 40 \le \text{score} < 80\\
-\textbf{Unknown} & \text{score} < 40 \ \text{or the fact is not traceable}
-\end{cases}
-$$
+| Evidence factor | Weight |
+|---|---|
+| Screen implementation | +50 |
+| Route declaration | +35 |
+| Transition | +35 |
+| Source code | +35 |
+| Validation | +25 |
+| Test | +20 |
+| Screen capture | +20 |
+| Source agreement | +20 |
+| Documentation | +10 |
+| Missing source | -25 |
+| Conflict | -45 |
 
-A non-traceable fact is forced to $\text{score} = 0$. Strong conflicting evidence, or a *Confirmed*-range score with no direct source line behind it, is capped at $79$ so it can never read as *Confirmed*. Confidence describes **evidence quality**, never business impact — the app keeps those two ideas on separate controls.
+Two rules then override the number:
+
+1. A fact that is **not traceable** is forced to score 0 and labeled *Unknown*.
+2. A score of 80 or more is **capped at 79** when no direct source-code evidence stands behind it, or when a strong conflicting factor is present. It can never read as *Confirmed*.
+
+The label follows from the final score:
+
+| Score | Label |
+|---|---|
+| 80–100 | **Confirmed** |
+| 40–79 | **Inferred** |
+| 0–39 | **Unknown** |
+
+Confidence describes **evidence quality**, never business impact — the app keeps those two ideas on separate controls.
 
 **Defense in depth for secrets.** In local-folder mode a weak filter leaks a developer's real credentials, so the exclusion runs in layers:
 

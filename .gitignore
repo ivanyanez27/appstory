@@ -1,11 +1,18 @@
-.superpowers/
+# Dependencies and build output
 node_modules/
 dist/
-.DS_Store
-*.local
-.env
-.env.*
 .wrangler/
 
-.impeccable/hook.cache.json
-.impeccable/config.local.json
+# Local environment. The example file is tracked on purpose.
+.env
+.env.*
+!.env.example
+*.local
+
+# Local agent and tooling state
+.claude/
+.superpowers/
+.impeccable/
+
+# OS noise
+.DS_Store
