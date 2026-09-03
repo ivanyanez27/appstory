@@ -99,7 +99,7 @@ Confidence describes **evidence quality**, never business impact — the app kee
 - Secret and dependency patterns are checked on *every path segment*, not just the filename. Segments are NFC-normalized and stripped of zero-width characters first.
 - A content scan backs up the name filter. A file whose text matches a private-key block, a known token prefix, or a quoted credential assignment is blocked even when the name looked safe.
 - Imported Project Files are re-validated for path traversal. The Markdown export degrades a bad evidence link to plain text instead of throwing.
-- Every response carries `Origin-Agent-Cluster`, `Permissions-Policy: tools=(self)`, `X-Content-Type-Options`, `Referrer-Policy`, and `X-Frame-Options`, across all four host configs.
+- Every deployed response carries `Origin-Agent-Cluster`, `Permissions-Policy: tools=(self)`, `X-Content-Type-Options`, `Referrer-Policy`, and `X-Frame-Options`.
 
 ## Challenges I ran into
 

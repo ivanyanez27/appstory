@@ -4,6 +4,13 @@ AppStory turns a public GitHub repository into an evidence-backed visual story o
 
 Built for the [WebMCP Challenge](https://openai.com/webmcp-challenge/).
 
+## Try it
+
+Open [appstory.ivanideas.com](https://appstory.ivanideas.com), then connect
+[`ivanyanez27/trailhead-demo`](https://github.com/ivanyanez27/trailhead-demo).
+Trailhead is the public demo repository used to test AppStory's complete
+repository-indexing and analysis flow.
+
 ## What AppStory does
 
 The core workflow is:
