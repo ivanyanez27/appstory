@@ -109,7 +109,7 @@ Confidence describes **evidence quality**, never business impact — the app kee
 
 **The progressive graph.** A fully expanded graph hides the product journey in technical noise. Separate per-flow graphs hide the screens that flows share. The answer was one graph that starts as a flow overview and expands a screen into its technical steps *in place*, on request. Layout had to stay stable as nodes appeared and disappeared.
 
-**WebMCP is still arriving.** No shipping browser exposes `document.modelContext` without a flag or an origin-trial token. I built a spec-compliant stub of the platform to drive the app's real tool-registration and tool-execution code in tests, and made the status chip poll — a browser extension can inject the API after the page mounts, and a one-shot check would leave the chip wrongly stuck on *unavailable*.
+**WebMCP is still arriving.** Chrome exposes `document.modelContext` through its testing flag or origin trial. I unit tested the repository, proposal, and rendering logic without the platform, and made the status chip poll — a browser extension can inject the API after the page mounts, and a one-shot check would leave the chip wrongly stuck on *unavailable*.
 
 **Accessibility parity.** The canvas cannot be the only way in. The keyboard outline renders from the *same* accepted analysis data and exposes everything the canvas does: evidence factors, AI reasons, connections, commit-pinned evidence links, read records, and the gap-review controls.
 
@@ -131,4 +131,4 @@ Confidence describes **evidence quality**, never business impact — the app kee
 
 ### Built with
 
-`vite` · `react` · `typescript` · `tldraw` · `webmcp` · `use-webmcp-tool` · `document.modelContext` · `cloudflare-workers` · `wrangler` · `vitest` · `oxlint` · `github-api` · `file-system-access-api` · `html5-canvas` · `svg` · `localstorage` · `netlify` · `vercel` · `json` · `markdown`
+`vite` · `react` · `typescript` · `tldraw` · `webmcp` · `use-webmcp-tool` · `document.modelContext` · `cloudflare-workers` · `wrangler` · `vitest` · `oxlint` · `github-api` · `file-system-access-api` · `html5-canvas` · `svg` · `localstorage` · `json` · `markdown`

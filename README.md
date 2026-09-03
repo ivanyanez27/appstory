@@ -96,15 +96,13 @@ npm run build
 
 Live: [appstory.ivanideas.com](https://appstory.ivanideas.com) (also at [appstory.ivanyanez27.workers.dev](https://appstory.ivanyanez27.workers.dev))
 
-Deploy the `dist/` folder to a static HTTPS host. Configs for three are in this repo:
-
-- **Cloudflare Workers** (current deployment): `npm run deploy`, or `npx wrangler deploy` after `npm run build`. `wrangler.jsonc` serves `dist/` as static assets; `worker/index.ts` stamps every response with the five headers above, matching what `public/_headers` does for Netlify and `vercel.json` does for Vercel.
-- **Netlify**: connect the repo; `netlify.toml` sets the build command and headers.
-- **Vercel**: connect the repo; `vercel.json` sets the headers.
+Deploy to Cloudflare Workers with `npm run deploy`. `wrangler.jsonc` serves the
+`dist/` directory as static assets, and `worker/index.ts` adds the five headers
+listed above to every response.
 
 ## Testing with a real WebMCP agent
 
-The live deployment is fully verified with a spec-compliant `document.modelContext` stub standing in for the platform, driving the app's actual tool-registration and tool-execution code. Two things remain genuinely manual — each needs a human's own account or a change to their own browser, so they can't be automated from here:
+The core repository, consent, proposal, persistence, and export logic has automated unit coverage. End-to-end WebMCP checks remain manual because they need a supported browser and agent account:
 
 - **Chrome**: no shipping Chrome build exposes `document.modelContext` without action from a site owner or a person browsing. Either register this origin for [Chrome's WebMCP origin trial](https://developer.chrome.com/origintrials/#/register_trial/4163014905550602241) (needs a Google account; register `https://appstory.ivanideas.com` exactly, then paste the issued token into the commented-out `<meta http-equiv="origin-trial">` tag in `index.html` and redeploy — every visitor then gets native WebMCP, no flag needed), or open `chrome://flags/#enable-webmcp-testing` in your own Chrome, enable it, and relaunch.
 - **ChatGPT**: open the live URL in ChatGPT's in-app browser from your own account.

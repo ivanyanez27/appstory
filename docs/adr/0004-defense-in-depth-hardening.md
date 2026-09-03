@@ -17,8 +17,8 @@ developer's credentials in local-folder mode.
   traversal on import; the Markdown export degrades a bad evidence link to plain
   text instead of throwing.
 - **Every response carries `X-Content-Type-Options`, `Referrer-Policy`, and
-  `X-Frame-Options`** in addition to the WebMCP origin-isolation headers, across
-  all four host configs.
+  `X-Frame-Options`** in addition to the WebMCP origin-isolation headers from
+  the Cloudflare Worker.
 
 A Content-Security-Policy was considered and deferred: tldraw injects inline
 styles, so a useful policy needs measurement before it can be committed without
